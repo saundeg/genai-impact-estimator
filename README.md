@@ -51,7 +51,8 @@ The answer is only as good as the weakest link in the chain, and several links a
 | Energy, short text query | 0.31 Wh | **Strong.** Peer-reviewed, *Joule*, April 2026 |
 | Energy, long reasoning query | 3.91 Wh | **Strong.** Same paper, ~5,000 output tokens |
 | Energy, agentic task | 8 × long query | **Weak.** The multiplier is an assumption |
-| Energy, image or video | 2.5 Wh | **None.** Placeholder — no production benchmark exists |
+| Energy, image generation | 2.9 Wh | **Moderate.** Measured by Luccioni et al., ACM FAccT 2024, across 88 models. A lighter model at lower resolution measured about 0.3 Wh |
+| Energy, video generation | 944 Wh per 5-sec clip | **Moderate.** Measured on CogVideoX. Around 700× an image. A single study, no published spread |
 | Carbon per kWh | 0.13096 kg | **Strong.** UK government official factor, 2026 |
 | Data-centre cooling water | 0.36 L/kWh | **Moderate.** Published figures span 0.12 to about 1.1 |
 | Upstream water from generation | 1.8 L/kWh | **Moderate.** Published values span 1.8 to 7.6 |
@@ -162,6 +163,7 @@ Grouped by topic rather than alphabetically, because the terms make more sense i
 - Department for Energy Security and Net Zero, *Greenhouse gas reporting: conversion factors 2026*
 - Li, P., Yang, J., Islam, M.A. and Ren, S., "Making AI Less Thirsty," *Communications of the ACM*
 - Lawrence Berkeley National Laboratory, *2024 United States Data Center Energy Usage Report*
+- Luccioni, S., Jernite, Y. and Strubell, E., "Power Hungry Processing: Watts Driving the Cost of AI Deployment?", *ACM FAccT*, 2024 — measured image generation; the video figure comes from the same author's later CogVideoX measurements
 - International Energy Agency, *Energy and AI*, 2025
 - Ofgem, *Review of typical domestic consumption values*, decision implemented 1 July 2026 — for the household electricity comparison
 - Ofwat and Water UK, for average household water consumption per person

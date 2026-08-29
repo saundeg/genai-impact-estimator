@@ -85,6 +85,7 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
 .r2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .r3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .r4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.r5{grid-template-columns:repeat(5,minmax(0,1fr))}
 
 .field label{display:block;font-family:var(--sans);font-weight:600;font-size:1.03rem;line-height:1.25;margin-bottom:5px}
 .field input{width:100%;font-family:var(--mono);font-size:17px;padding:10px 11px;
@@ -177,10 +178,10 @@ details.adv[open] summary{margin-bottom:16px}
   .cols{grid-template-columns:1fr}
   .sticky{position:static}
   .key-items{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .r4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .r4,.r5{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:560px){
-  .r2,.r3,.r4,.scenarios{grid-template-columns:1fr}
+  .r2,.r3,.r4,.r5,.scenarios{grid-template-columns:1fr}
   .key-items{grid-template-columns:1fr}
   .metric .m-value{font-size:1.75rem}
 }
@@ -291,11 +292,12 @@ details.adv[open] summary{margin-bottom:16px}
   <h2><span class="num">03</span> What kind of work they do</h2>
   <p class="blurb">This is the change that matters most against a single-figure model. A long reasoning query uses roughly thirteen times the energy of a short one, and one agentic task can trigger many model calls behind a single click. Shares must total 100%.</p>
 
-  <div class="row r4">
+  <div class="row r5">
     <div class="field"><label>Short text (%) <span class="tag p">Published</span></label><input id="mixShort" type="number" min="0" max="100" value="70"></div>
     <div class="field"><label>Long reasoning (%) <span class="tag p">Published</span></label><input id="mixLong" type="number" min="0" max="100" value="20"></div>
     <div class="field"><label>Agentic (%) <span class="tag a">Assumption</span></label><input id="mixAgent" type="number" min="0" max="100" value="8"></div>
-    <div class="field"><label>Image / video (%) <span class="tag a">Assumption</span></label><input id="mixImage" type="number" min="0" max="100" value="2"></div>
+    <div class="field"><label>Image (%) <span class="tag p">Published</span></label><input id="mixImage" type="number" min="0" max="100" value="2"></div>
+    <div class="field"><label>Video (%) <span class="tag p">Published</span></label><input id="mixVideo" type="number" min="0" max="100" step="0.1" value="0"></div>
   </div>
   <p class="mixwarn" id="mixwarn"></p>
 
@@ -306,9 +308,8 @@ details.adv[open] summary{margin-bottom:16px}
       <p class="hint">One user action in a coding or research agent can fire many separate model calls. Energy per agentic task is this number multiplied by the long-reasoning figure.</p>
     </div>
     <div class="field">
-      <label>Energy per image/video task (Wh) <span class="tag a">Assumption</span></label>
-      <input id="imageWh" type="number" min="0" step="0.1" value="2.5">
-      <p class="hint">No production benchmark exists. Google's measured figures explicitly exclude image and video prompts. This is a placeholder — set it to zero and exclude the category if you would rather not guess.</p>
+      <label>A warning about video</label>
+      <p class="hint" style="margin-top:6px">Video generation is measured at roughly <strong>944 Wh per five-second clip</strong> — about three hundred times a long reasoning query, and seven hundred times an image. Even a fraction of a percent of video use will dominate your total. Leave the video share at zero unless you know it happens, and if you do set it, check what it does to the blended figure.</p>
     </div>
   </div>
 
@@ -334,6 +335,27 @@ details.adv[open] summary{margin-bottom:16px}
         </div>
       </div>
     </div>
+    <div class="row r2" style="margin-top:14px">
+      <div class="factor">
+        <h3>Image generation <span class="tag p">Published</span></h3>
+        <p class="src">Luccioni, Jernite and Strubell (ACM FAccT, 2024) measured <strong>2.907 Wh per image</strong> across 88 models. A 2025 study of a lighter model at 512&times;512 measured about 0.3 Wh, roughly ten times less — the gap is driven by parameter count, resolution and denoising steps. The central value here takes the higher, better-evidenced figure.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="imgLo" type="number" step="0.1" min="0" value="0.3"></div>
+          <div><label>Central</label><input id="imgMid" type="number" step="0.1" min="0" value="2.9"></div>
+          <div><label>High</label><input id="imgHi" type="number" step="0.1" min="0" value="2.9"></div>
+        </div>
+      </div>
+      <div class="factor">
+        <h3>Video generation <span class="tag p">Published</span></h3>
+        <p class="src">Measurements on CogVideoX found a five-second clip required about 3.4 megajoules of GPU energy, or roughly <strong>944 Wh</strong> — around seven hundred times a high-quality image. This is a single measurement with no published spread, so all three fields carry the same value. Scale it up for longer clips.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="vidLo" type="number" step="1" min="0" value="944"></div>
+          <div><label>Central</label><input id="vidMid" type="number" step="1" min="0" value="944"></div>
+          <div><label>High</label><input id="vidHi" type="number" step="1" min="0" value="944"></div>
+        </div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:11px">Image and video figures are laboratory measurements on open models, not metered production figures from the services your institution licenses, so they are less directly comparable than the text figures above.</p>
     <p class="hint" style="margin-top:11px">Uncertainty ranges are recomputed from these fields and from the task mix. If you override a central value, the range moves with it — the reported range will always bracket the reported central estimate.</p>
   </details>
 </section>
@@ -485,6 +507,7 @@ details.adv[open] summary{margin-bottom:16px}
     <li>Oviedo, F. et al., “Energy use of AI inference, efficiency pathways, and test-time scaling,” <em>Joule</em>, published online 22 April 2026. doi:10.1016/j.joule.2026.102430. Preprint: <a href="https://arxiv.org/abs/2509.20241">arxiv.org/abs/2509.20241</a>. Note: authored by Microsoft researchers.</li>
     <li>Google, “Measuring the environmental impact of AI inference,” Google Cloud blog, 21 August 2025, and the accompanying technical paper <em>Measuring the environmental impact of delivering AI at Google scale</em>. Not peer-reviewed at time of publication.</li>
     <li>Microsoft, “Scaling AI with 8 to 20x energy efficiency,” Microsoft Cloud blog, 15 June 2026.</li>
+    <li>Luccioni, S., Jernite, Y. and Strubell, E., “Power Hungry Processing: Watts Driving the Cost of AI Deployment?”, <em>ACM FAccT</em>, 2024. Source of the measured image-generation figure; the video figure derives from the same author’s later measurements on CogVideoX.</li>
     <li>Stephenson, R. and Armstrong, C., <em>Student Generative AI Survey 2026</em>, HEPI Report 199, sponsored by Kortext. Survey by Savanta, December 2025, 1,054 full-time UK undergraduates.</li>
     <li>Department for Energy Security and Net Zero, <em>Greenhouse gas reporting: conversion factors 2026</em>. UK electricity generation factor 0.13096 kgCO₂e/kWh.</li>
     <li>Li, P., Yang, J., Islam, M.A. and Ren, S., “Making AI Less Thirsty,” <em>Communications of the ACM</em>, 2024–25, for the direct/indirect water distinction.</li>
@@ -513,8 +536,10 @@ const F = {
   stuN:'', staN:'', stuWk:42, staWk:46,
   stuAdopt:95, stuInst:45, stuWeekly:12,
   staAdopt:78, staInst:60, staWeekly:20,
-  mixShort:70, mixLong:20, mixAgent:8, mixImage:2,
-  agentCalls:8, imageWh:2.5,
+  mixShort:70, mixLong:20, mixAgent:8, mixImage:2, mixVideo:0,
+  agentCalls:8,
+  imgLo:0.3, imgMid:2.9, imgHi:2.9,
+  vidLo:944, vidMid:944, vidHi:944,
   shortLo:0.16, shortMid:0.31, shortHi:0.60,
   longLo:2.15, longMid:3.91, longHi:7.05,
   gridLo:0.10, gridMid:0.13096, gridHi:0.19553,
@@ -526,11 +551,11 @@ const F = {
 
 const SCEN = {
   low:  { stuInst:15, stuWeekly:4,  staAdopt:70, staInst:35, staWeekly:5,
-          mixShort:90, mixLong:8,  mixAgent:2,  mixImage:0, agentCalls:5, stuWk:40, staWk:44 },
+          mixShort:90, mixLong:8,  mixAgent:2,  mixImage:0,   mixVideo:0,   agentCalls:5,  stuWk:40, staWk:44 },
   med:  { stuInst:45, stuWeekly:12, staAdopt:78, staInst:60, staWeekly:20,
-          mixShort:70, mixLong:20, mixAgent:8,  mixImage:2, agentCalls:8, stuWk:42, staWk:46 },
+          mixShort:70, mixLong:20, mixAgent:8,  mixImage:2,   mixVideo:0,   agentCalls:8,  stuWk:42, staWk:46 },
   high: { stuInst:80, stuWeekly:30, staAdopt:85, staInst:80, staWeekly:45,
-          mixShort:50, mixLong:30, mixAgent:15, mixImage:5, agentCalls:12, stuWk:46, staWk:48 }
+          mixShort:50, mixLong:30, mixAgent:15, mixImage:4.5, mixVideo:0.5, agentCalls:12, stuWk:46, staWk:48 }
 };
 
 const nf = (n, d = 0) => n.toLocaleString('en-GB', { maximumFractionDigits: d, minimumFractionDigits: 0 });
@@ -635,24 +660,26 @@ function calc() {
 
   // --- task mix, normalised ---
   let ms = N($('mixShort'), F.mixShort), ml = N($('mixLong'), F.mixLong),
-      ma = N($('mixAgent'), F.mixAgent), mi = N($('mixImage'), F.mixImage);
-  const sum = ms + ml + ma + mi;
+      ma = N($('mixAgent'), F.mixAgent), mi = N($('mixImage'), F.mixImage),
+      mv = N($('mixVideo'), F.mixVideo);
+  const sum = ms + ml + ma + mi + mv;
   const warn = $('mixwarn');
   if (Math.abs(sum - 100) > 0.5) {
     warn.textContent = 'Task shares total ' + nf(sum, 1) + '%, not 100%. Results below are normalised to 100% so they stay valid, but adjust the shares to remove the ambiguity.';
     warn.classList.add('on');
   } else { warn.classList.remove('on'); }
   const d = sum > 0 ? sum : 1;
-  ms /= d; ml /= d; ma /= d; mi /= d;
+  ms /= d; ml /= d; ma /= d; mi /= d; mv /= d;
 
   // --- blended Wh per interaction at each bound ---
   const calls = Math.max(1, N($('agentCalls'), F.agentCalls));
-  const img = N($('imageWh'), F.imageWh);
   const sLo = N($('shortLo'), F.shortLo), sMid = N($('shortMid'), F.shortMid), sHi = N($('shortHi'), F.shortHi);
   const lLo = N($('longLo'), F.longLo), lMid = N($('longMid'), F.longMid), lHi = N($('longHi'), F.longHi);
+  const iLo_ = N($('imgLo'), F.imgLo), iMid_ = N($('imgMid'), F.imgMid), iHi_ = N($('imgHi'), F.imgHi);
+  const vLo_ = N($('vidLo'), F.vidLo), vMid_ = N($('vidMid'), F.vidMid), vHi_ = N($('vidHi'), F.vidHi);
 
-  const blend = (s, l) => ms * s + ml * l + ma * (l * calls) + mi * img;
-  const whLo = blend(sLo, lLo), whMid = blend(sMid, lMid), whHi = blend(sHi, lHi);
+  const blend = (s, l, im, vd) => ms * s + ml * l + ma * (l * calls) + mi * im + mv * vd;
+  const whLo = blend(sLo, lLo, iLo_, vLo_), whMid = blend(sMid, lMid, iMid_, vMid_), whHi = blend(sHi, lHi, iHi_, vHi_);
 
   // --- energy ---
   const eLo = interactions * whLo / 1000, eMid = interactions * whMid / 1000, eHi = interactions * whHi / 1000;
@@ -733,7 +760,8 @@ function assumptionsLog() {
     '  Short text ' + g('mixShort') + '% at ' + g('shortMid') + ' Wh (range ' + g('shortLo') + '–' + g('shortHi') + ')',
     '  Long reasoning ' + g('mixLong') + '% at ' + g('longMid') + ' Wh (range ' + g('longLo') + '–' + g('longHi') + ')',
     '  Agentic ' + g('mixAgent') + '% at ' + g('agentCalls') + ' model calls per task',
-    '  Image/video ' + g('mixImage') + '% at ' + g('imageWh') + ' Wh [no published benchmark]',
+    '  Image ' + g('mixImage') + '% at ' + g('imgMid') + ' Wh [Luccioni et al. 2024, measured]',
+    '  Video ' + g('mixVideo') + '% at ' + g('vidMid') + ' Wh per 5-second clip [measured, single study]',
     '  Blended: ' + nf(LAST.whMid, 2) + ' Wh per interaction',
     '',
     'CONVERSION FACTORS',
@@ -755,6 +783,7 @@ function assumptionsLog() {
     '',
     'SOURCES',
     '  Oviedo et al., Joule (2026), doi:10.1016/j.joule.2026.102430',
+    '  Luccioni, Jernite and Strubell, Power Hungry Processing, ACM FAccT 2024 (image/video)',
     '  Google Cloud, Measuring the environmental impact of AI inference, 21 Aug 2025',
     '  Microsoft Cloud, Scaling AI with 8 to 20x energy efficiency, 15 Jun 2026',
     '  HEPI Report 199, Student Generative AI Survey 2026',
