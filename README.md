@@ -2,7 +2,7 @@
 
 A scenario calculator for estimating the annual electricity, carbon and water associated with generative AI provided to staff and students under an institutional licence.
 
-**[Open the calculator →](https://YOURUSERNAME.github.io/genai-impact-estimator/)**
+**[Open the calculator →](https://saundeg.github.io/genai-impact-estimator/)**
 
 ---
 
