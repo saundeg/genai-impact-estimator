@@ -148,6 +148,19 @@ details.adv[open] summary{margin-bottom:16px}
   display:block;margin-bottom:3px;font-weight:500}
 .trip input{width:100%;font-family:var(--mono);font-size:16px;padding:8px 9px;border:1px solid var(--rule);background:#fff}
 
+
+.equiv{background:var(--card);border:1px solid var(--rule);padding:18px 20px;margin-top:20px}
+.equiv h3{font-family:var(--sans);font-weight:700;font-size:1.1rem;margin:0 0 4px}
+.equiv .lead{font-size:.9rem;color:var(--ink-3);margin:0 0 14px;line-height:1.5}
+.equiv ul{list-style:none;margin:0;padding:0}
+.equiv li{padding:12px 0;border-top:1px solid var(--rule-soft)}
+.equiv li:first-child{border-top:0;padding-top:2px}
+.equiv .eq-metric{font-family:var(--mono);font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:var(--keel);margin:0 0 4px}
+.equiv .eq-text{font-size:1.02rem;margin:0;line-height:1.45}
+.equiv .eq-text b{font-family:var(--mono);font-weight:600}
+.equiv .eq-basis{font-size:.83rem;color:var(--ink-3);margin:4px 0 0;line-height:1.45}
+.equiv .eq-caveat{font-size:.87rem;color:var(--ink-2);background:#f6f9f9;border-left:3px solid var(--keel);padding:12px 14px;margin:16px 0 0;line-height:1.5}
+
 /* ---------- sources ---------- */
 .sources{margin-top:34px;border-top:2px solid var(--ink);padding-top:20px}
 .sources h2{font-family:var(--sans);font-size:1.25rem;margin:0 0 14px}
@@ -446,6 +459,14 @@ details.adv[open] summary{margin-bottom:16px}
       </div>
     </div>
 
+
+    <div class="equiv">
+      <h3>What that means in everyday terms</h3>
+      <p class="lead">Raw kilowatt-hours mean little to most readers. These comparisons put the figures on a human scale. The basis for each is shown so you can check it — or swap it for one you prefer.</p>
+      <ul id="equivList"></ul>
+      <p class="eq-caveat"><strong>Handle with care.</strong> Equivalences are illustrative, never evidence. The denominator you pick controls the impression: the same figure can be made to sound trivial or alarming depending on whether you compare it to boiling a kettle or to powering homes. Quote the basis alongside the comparison, and never substitute an equivalence for the actual number.</p>
+    </div>
+
     <div class="notice">
       <strong>Suggested wording for a committee paper.</strong> “Illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Adoption rates are drawn from published survey evidence; interaction frequency and licence share are planning assumptions and are the dominant source of uncertainty.”
     </div>
@@ -515,6 +536,67 @@ const carbonT = kg => kg >= 1000 ? nf(kg / 1000, 2) + ' tCO2e' : nf(kg, 0) + ' k
 const waterF = l => l >= 1000 ? nf(l / 1000, 1) + '<small>m³</small>' : nf(l, 0) + '<small>L</small>';
 const waterT = l => l >= 1000 ? nf(l / 1000, 1) + ' m3' : nf(l, 0) + ' L';
 
+
+// ---- everyday equivalences -------------------------------------------------
+// Denominators are published UK averages. Each is shown to the user alongside
+// the comparison so the basis is never hidden.
+const EQ = {
+  homeKwh: 2500,        // Ofgem TDCV, medium household electricity, from 1 July 2026
+  waterLpd: 140,        // litres per person per day, England & Wales average
+  carKgMile: 0.2736,    // average petrol car, kgCO2e/mile (0.17 kgCO2e/km)
+  poolL: 2500000,       // Olympic pool, 2,500 m3
+  bathL: 80             // a filled bath
+};
+
+function renderEquivalences(eMid, cMid, wMid, gridFactor) {
+  const items = [];
+  const b = s => '<b>' + s + '</b>';
+
+  // --- electricity ---
+  const homes = eMid / EQ.homeKwh;
+  items.push({
+    metric: 'Electricity',
+    text: homes >= 1
+      ? 'About the same as ' + b(nf(homes, homes < 10 ? 1 : 0)) + ' UK ' + (homes < 1.5 ? 'home uses' : 'homes use') + ' in electricity over a year.'
+      : 'About ' + b(nf(100 * homes, 0) + '%') + ' of the electricity a single UK home uses in a year.',
+    basis: 'One home = 2,500 kWh a year (Ofgem typical domestic consumption value, revised 1 July 2026).'
+  });
+
+  // --- carbon ---
+  const miles = cMid / EQ.carKgMile;
+  const homeCarbon = EQ.homeKwh * gridFactor;
+  const carbonHomes = cMid / homeCarbon;
+  items.push({
+    metric: 'Carbon',
+    text: 'About the same as driving ' + b(nf(miles, miles < 100 ? 0 : 0)) + ' miles in an average petrol car, or the electricity emissions of '
+      + (carbonHomes >= 1 ? b(nf(carbonHomes, carbonHomes < 10 ? 1 : 0)) + ' UK ' + (carbonHomes < 1.5 ? 'home' : 'homes') + ' for a year.'
+                          : b(nf(100 * carbonHomes, 0) + '%') + ' of one UK home for a year.'),
+    basis: 'Average petrol car = 0.17 kgCO₂e per km. Home electricity emissions derived from the grid factor set above, so this moves if you change it.'
+  });
+
+  // --- water ---
+  const personYear = EQ.waterLpd * 365;
+  const people = wMid / personYear;
+  const pools = wMid / EQ.poolL;
+  const baths = wMid / EQ.bathL;
+  let wText, wBasis;
+  if (pools >= 0.5) {
+    wText = 'About ' + b(nf(pools, pools < 10 ? 1 : 0)) + ' Olympic swimming ' + (pools < 1.5 ? 'pool' : 'pools') + ', or the household water of ' + b(nf(people, 0)) + ' people for a year.';
+    wBasis = 'Olympic pool = 2,500 m³. One person = 140 litres a day (England and Wales average).';
+  } else if (people >= 1) {
+    wText = 'About the household water ' + b(nf(people, people < 10 ? 1 : 0)) + ' ' + (people < 1.5 ? 'person uses' : 'people use') + ' in a year.';
+    wBasis = 'One person = 140 litres a day, about 51 m³ a year (England and Wales average).';
+  } else {
+    wText = 'About ' + b(nf(baths, 0)) + ' filled ' + (baths < 1.5 ? 'bath' : 'baths') + '.';
+    wBasis = 'A filled bath = 80 litres.';
+  }
+  items.push({ metric: 'Water', text: wText, basis: wBasis });
+
+  $('equivList').innerHTML = items.map(i =>
+    '<li><p class="eq-metric">' + i.metric + '</p><p class="eq-text">' + i.text + '</p><p class="eq-basis">' + i.basis + '</p></li>'
+  ).join('');
+}
+
 let LAST = null;
 
 function bandFill(barEl, markEl, lo, mid, hi) {
@@ -532,6 +614,7 @@ function emptyState() {
   ['sEnergy','sCarbon','sWater'].forEach(id => { $(id).style.width = '0%'; });
   ['mEnergy','mCarbon','mWater'].forEach(id => { $(id).style.left = '-9px'; });
   ['oShareE','oShareW','oPer'].forEach(id => { $(id).textContent = '—'; });
+  $('equivList').innerHTML = '<li><p class="eq-text" style="color:var(--ink-3)">Comparisons appear once you enter a headcount.</p></li>';
   LAST = null;
 }
 
@@ -604,6 +687,8 @@ function calc() {
   $('oShareE').textContent = ik ? (100 * eMid / ik).toFixed(3) + '%' : 'add total';
   $('oShareW').textContent = iw ? (100 * (wMid / 1000) / iw).toFixed(3) + '%' : 'add total';
   $('oPer').textContent = headcount > 0 ? nf(1000 * eMid / headcount, 0) + ' Wh' : '—';
+
+  renderEquivalences(eMid, cMid, wMid, N($('gridMid'), F.gridMid));
 
   LAST = { interactions, stuInt, staInt, whMid, eMid, eLo, eHi, cMid, mbMid, wMid, dMid, iMid, headcount };
 }
