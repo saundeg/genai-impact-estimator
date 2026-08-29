@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generative AI Environmental Impact Estimator — v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12181d;
+  --ink-2:#3d4a54;
+  --ink-3:#6d7d88;
+  --paper:#eef1f2;
+  --card:#ffffff;
+  --rule:#ccd4d8;
+  --rule-soft:#e2e8ea;
+  --keel:#12454b;          /* structural accent */
+  --keel-soft:#dfeaea;
+
+  /* provenance tiers */
+  --tier-m:#0b6b6f;        /* measured in production */
+  --tier-p:#3b4a8c;        /* peer-reviewed / published */
+  --tier-i:#8a6212;        /* your institution supplies */
+  --tier-a:#9c3a2c;        /* assumption, not evidenced */
+
+  --sans:"IBM Plex Sans Condensed",Arial Narrow,Helvetica,sans-serif;
+  --serif:"IBM Plex Serif",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:16px;line-height:1.55;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:2px solid var(--ink);padding:34px 0 18px;margin-bottom:26px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--keel);margin:0 0 10px}
+h1{font-family:var(--sans);font-weight:700;font-size:clamp(1.9rem,4.4vw,3rem);line-height:1.04;letter-spacing:-.015em;margin:0 0 14px;max-width:20ch}
+.standfirst{max-width:62ch;color:var(--ink-2);margin:0}
+.standfirst em{color:var(--ink)}
+
+/* ---------- provenance key ---------- */
+.key{margin:22px 0 0;padding:14px 16px;background:var(--card);border:1px solid var(--rule)}
+.key h2{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;font-weight:500}
+.key-items{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.key-item{font-size:.83rem;line-height:1.4;color:var(--ink-2);padding-left:20px;position:relative}
+.key-item b{display:block;font-family:var(--sans);font-size:.9rem;letter-spacing:.01em;color:var(--ink)}
+.key-item::before{content:"";position:absolute;left:0;top:.42em;width:10px;height:10px;border-radius:2px}
+.key-item.m::before{background:var(--tier-m)}
+.key-item.p::before{background:var(--tier-p)}
+.key-item.i::before{background:var(--tier-i)}
+.key-item.a::before{background:var(--tier-a)}
+
+/* ---------- provenance chip on any element ---------- */
+.tag{display:inline-block;font-family:var(--mono);font-size:.62rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 6px;border-radius:2px;vertical-align:.12em;margin-left:7px;white-space:nowrap;color:#fff}
+.tag.m{background:var(--tier-m)}.tag.p{background:var(--tier-p)}
+.tag.i{background:var(--tier-i)}.tag.a{background:var(--tier-a)}
+
+/* ---------- layout ---------- */
+.cols{display:grid;grid-template-columns:minmax(0,1.28fr) minmax(0,1fr);gap:30px;align-items:start;margin-top:30px}
+.sticky{position:sticky;top:20px}
+
+section.block{background:var(--card);border:1px solid var(--rule);padding:20px 22px;margin-bottom:20px}
+.block > h2{font-family:var(--sans);font-weight:700;font-size:1.12rem;letter-spacing:-.005em;margin:0 0 4px;
+  display:flex;align-items:baseline;gap:9px}
+.block > h2 .num{font-family:var(--mono);font-size:.72rem;color:var(--keel);font-weight:600;letter-spacing:.06em}
+.block > .blurb{color:var(--ink-3);font-size:.87rem;margin:0 0 18px;max-width:60ch}
+
+fieldset{border:0;padding:0;margin:0 0 20px}
+fieldset:last-of-type{margin-bottom:0}
+legend{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);
+  padding:0 0 9px;border-bottom:1px solid var(--rule-soft);width:100%;margin-bottom:13px}
+
+.row{display:grid;gap:14px}
+.r2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.r3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.r4{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+.field label{display:block;font-family:var(--sans);font-weight:600;font-size:.9rem;line-height:1.25;margin-bottom:5px}
+.field input{width:100%;font-family:var(--mono);font-size:15px;padding:8px 9px;
+  border:1px solid var(--rule);border-radius:0;background:#fbfcfc;color:var(--ink)}
+.field input:focus{outline:2px solid var(--keel);outline-offset:1px;background:#fff}
+.field input.need:placeholder-shown{border:1px dashed var(--tier-i);background:#fffdf5}
+.field input.need:placeholder-shown::placeholder{color:#a98c4e}
+.hint{font-size:.76rem;color:var(--ink-3);margin:5px 0 0;line-height:1.4}
+.hint code{font-family:var(--mono);font-size:.95em}
+
+/* scenario buttons */
+.scenarios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:6px}
+.scen{border:1px solid var(--rule);background:#fbfcfc;padding:12px 13px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.scen:hover{border-color:var(--keel)}
+.scen:focus-visible{outline:2px solid var(--keel);outline-offset:1px}
+.scen[aria-pressed=true]{border:1px solid var(--keel);background:var(--keel-soft);box-shadow:inset 3px 0 0 var(--keel)}
+.scen b{display:block;font-family:var(--sans);font-size:1rem;font-weight:700;margin-bottom:3px}
+.scen span{font-size:.77rem;color:var(--ink-2);line-height:1.35;display:block}
+
+/* ---------- results ---------- */
+.results{background:var(--ink);color:#e9eef0;border:1px solid var(--ink);padding:22px}
+.results h2{font-family:var(--sans);font-size:1.05rem;font-weight:700;margin:0 0 3px;color:#fff}
+.results .sub{font-size:.8rem;color:#9fb0b8;margin:0 0 20px}
+.metric{padding:15px 0;border-top:1px solid #2c363d}
+.metric:first-of-type{border-top:0;padding-top:4px}
+.metric .m-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#8fa3ac;margin:0 0 6px}
+.metric .m-value{font-family:var(--mono);font-size:1.85rem;font-weight:500;letter-spacing:-.02em;line-height:1.1;color:#fff;margin:0}
+.metric .m-value small{font-size:.5em;font-weight:400;color:#a8bac2;letter-spacing:0;margin-left:2px}
+.metric .m-range{font-family:var(--mono);font-size:.75rem;color:#9fb0b8;margin:7px 0 0}
+.metric .m-note{font-size:.78rem;color:#9fb0b8;margin:6px 0 0;line-height:1.4}
+
+/* spread bar */
+.spread{height:5px;background:#2c363d;position:relative;margin:10px 0 0}
+.spread i{position:absolute;top:0;bottom:0;background:#4d8f92;display:block}
+.spread b{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff}
+
+.share{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:.72rem;color:#9fb0b8;
+  border-top:1px solid #2c363d;padding-top:13px;margin-top:15px}
+.share span b{color:#fff;font-weight:500}
+
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+button.act{font-family:var(--sans);font-weight:600;font-size:.86rem;padding:9px 13px;border:1px solid #4a575f;
+  background:transparent;color:#e9eef0;cursor:pointer}
+button.act:hover{background:#232c32;border-color:#7d8e96}
+button.act:focus-visible{outline:2px solid #7fd0d4;outline-offset:1px}
+
+/* ---------- notices ---------- */
+.notice{border-left:3px solid var(--keel);background:#f6f9f9;padding:13px 15px;margin:18px 0 0;font-size:.86rem;color:var(--ink-2)}
+.notice strong{color:var(--ink);font-family:var(--sans)}
+.notice.warn{border-left-color:var(--tier-a);background:#fbf4f2}
+
+.mixwarn{font-family:var(--mono);font-size:.76rem;color:var(--tier-a);margin:9px 0 0;display:none}
+.mixwarn.on{display:block}
+
+details.adv{border-top:1px solid var(--rule-soft);margin-top:18px;padding-top:14px}
+details.adv summary{font-family:var(--sans);font-weight:600;font-size:.92rem;cursor:pointer;color:var(--keel)}
+details.adv summary:focus-visible{outline:2px solid var(--keel);outline-offset:2px}
+details.adv[open] summary{margin-bottom:16px}
+
+.factor{border:1px solid var(--rule-soft);padding:13px;background:#fbfcfc}
+.factor h3{font-family:var(--sans);font-size:.92rem;font-weight:700;margin:0 0 3px}
+.factor .src{font-size:.76rem;color:var(--ink-3);margin:0 0 10px;line-height:1.4}
+.trip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trip label{font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+  display:block;margin-bottom:3px;font-weight:500}
+.trip input{width:100%;font-family:var(--mono);font-size:14px;padding:6px 7px;border:1px solid var(--rule);background:#fff}
+
+/* ---------- sources ---------- */
+.sources{margin-top:34px;border-top:2px solid var(--ink);padding-top:20px}
+.sources h2{font-family:var(--sans);font-size:1.1rem;margin:0 0 14px}
+.sources ol{font-size:.85rem;color:var(--ink-2);padding-left:20px;margin:0;line-height:1.5}
+.sources li{margin-bottom:9px}
+.sources a{color:var(--keel);word-break:break-word}
+.foot{margin-top:24px;font-size:.78rem;color:var(--ink-3);border-top:1px solid var(--rule);padding-top:14px;line-height:1.5}
+
+@media(max-width:920px){
+  .cols{grid-template-columns:1fr}
+  .sticky{position:static}
+  .key-items{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .r4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .r2,.r3,.r4,.scenarios{grid-template-columns:1fr}
+  .key-items{grid-template-columns:1fr}
+  .metric .m-value{font-size:1.55rem}
+}
+@media print{
+  body{background:#fff}
+  .actions,details.adv summary{display:none}
+  details.adv{display:block}
+  .results{background:#fff;color:#000;border:1px solid #000}
+  .results h2,.metric .m-value{color:#000}
+  .metric .m-label,.metric .m-range,.metric .m-note,.results .sub,.share{color:#333}
+  .sticky{position:static}
+  .cols{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.spread i,.spread b{transition:all .18s ease}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Scenario model · version 2 · not a measurement</p>
+  <h1>Generative AI Environmental Impact Estimator</h1>
+  <p class="standfirst">Estimates the annual <em>inference</em> electricity, carbon and water associated with generative AI provided to staff and students under an institutional licence. Every input below is colour-coded by how well it is evidenced, because the reliability of the answer is set almost entirely by the weakest input — not the strongest.</p>
+
+  <div class="key">
+    <h2>How to read the colour tags</h2>
+    <div class="key-items">
+      <div class="key-item m"><b>Measured</b>Metered by the supplier in live production and published.</div>
+      <div class="key-item p"><b>Published estimate</b>From peer-reviewed or formally published analysis.</div>
+      <div class="key-item i"><b>Your data</b>Only your institution can supply this. Replace the placeholder.</div>
+      <div class="key-item a"><b>Assumption</b>Invented for planning. No published basis. Treat as a dial, not a fact.</div>
+    </div>
+  </div>
+</header>
+
+<div class="cols">
+
+<!-- ============ LEFT: INPUTS ============ -->
+<div>
+
+<section class="block">
+  <h2><span class="num">01</span> Who has access</h2>
+  <p class="blurb">Split staff and students. They adopt AI at different rates and use it for different things, and averaging them hides most of the variation.</p>
+
+  <div class="row r4">
+    <div class="field"><label>Students <span class="tag i">Your data</span></label><input id="stuN" class="need" type="number" min="0" placeholder="e.g. 20000"></div>
+    <div class="field"><label>Staff <span class="tag i">Your data</span></label><input id="staN" class="need" type="number" min="0" placeholder="e.g. 3000"></div>
+    <div class="field"><label>Student weeks/year <span class="tag a">Assumption</span></label><input id="stuWk" type="number" min="1" max="52" value="42"></div>
+    <div class="field"><label>Staff weeks/year <span class="tag a">Assumption</span></label><input id="staWk" type="number" min="1" max="52" value="46"></div>
+  </div>
+</section>
+
+<section class="block">
+  <h2><span class="num">02</span> How much they use it</h2>
+  <p class="blurb">Pick a starting scenario, then adjust. Note that adoption is now evidenced — what is genuinely uncertain is how much of that use runs through <em>your</em> licences rather than personal free accounts.</p>
+
+  <div class="scenarios">
+    <button class="scen" type="button" data-s="low" aria-pressed="false"><b>Cautious</b><span>Most AI use happens on personal accounts. Light, mostly short prompts.</span></button>
+    <button class="scen" type="button" data-s="med" aria-pressed="true"><b>Central</b><span>Institutional licences carry roughly half of use. Some reasoning workloads.</span></button>
+    <button class="scen" type="button" data-s="high" aria-pressed="false"><b>Intensive</b><span>Licences carry most use. Heavy reasoning and agentic workloads.</span></button>
+  </div>
+
+  <fieldset>
+    <legend>Students</legend>
+    <div class="row r3">
+      <div class="field">
+        <label>Use GenAI at all (%) <span class="tag p">Published</span></label>
+        <input id="stuAdopt" type="number" min="0" max="100" value="95">
+        <p class="hint">HEPI 2026: 95% of UK undergraduates report using AI in at least one way.</p>
+      </div>
+      <div class="field">
+        <label>Of those, share using <em>your</em> licence (%) <span class="tag a">Assumption</span></label>
+        <input id="stuInst" type="number" min="0" max="100" value="45">
+        <p class="hint">The single biggest uncertainty in this model. HEPI cannot tell paid institutional ChatGPT from free personal accounts.</p>
+      </div>
+      <div class="field">
+        <label>Interactions per active student/week <span class="tag a">Assumption</span></label>
+        <input id="stuWeekly" type="number" min="0" value="12">
+        <p class="hint">No published UK figure exists for prompt frequency.</p>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Staff</legend>
+    <div class="row r3">
+      <div class="field">
+        <label>Use GenAI at all (%) <span class="tag a">Assumption</span></label>
+        <input id="staAdopt" type="number" min="0" max="100" value="78">
+        <p class="hint">Weak evidence. US working-age adoption for work was 36–45% in 2024–25; information and technology sectors reached 56–76%.</p>
+      </div>
+      <div class="field">
+        <label>Of those, share using <em>your</em> licence (%) <span class="tag a">Assumption</span></label>
+        <input id="staInst" type="number" min="0" max="100" value="60">
+        <p class="hint">Usually higher than students: staff have institutional accounts and data-handling rules.</p>
+      </div>
+      <div class="field">
+        <label>Interactions per active staff/week <span class="tag a">Assumption</span></label>
+        <input id="staWeekly" type="number" min="0" value="20">
+        <p class="hint">Adjust upward if Copilot or coding assistants are widely deployed.</p>
+      </div>
+    </div>
+  </fieldset>
+</section>
+
+<section class="block">
+  <h2><span class="num">03</span> What kind of work they do</h2>
+  <p class="blurb">This is the change that matters most against a single-figure model. A long reasoning query uses roughly thirteen times the energy of a short one, and one agentic task can trigger many model calls behind a single click. Shares must total 100%.</p>
+
+  <div class="row r4">
+    <div class="field"><label>Short text (%) <span class="tag p">Published</span></label><input id="mixShort" type="number" min="0" max="100" value="70"></div>
+    <div class="field"><label>Long reasoning (%) <span class="tag p">Published</span></label><input id="mixLong" type="number" min="0" max="100" value="20"></div>
+    <div class="field"><label>Agentic (%) <span class="tag a">Assumption</span></label><input id="mixAgent" type="number" min="0" max="100" value="8"></div>
+    <div class="field"><label>Image / video (%) <span class="tag a">Assumption</span></label><input id="mixImage" type="number" min="0" max="100" value="2"></div>
+  </div>
+  <p class="mixwarn" id="mixwarn"></p>
+
+  <div class="row r2" style="margin-top:14px">
+    <div class="field">
+      <label>Model calls per agentic task <span class="tag a">Assumption</span></label>
+      <input id="agentCalls" type="number" min="1" value="8">
+      <p class="hint">One user action in a coding or research agent can fire many separate model calls. Energy per agentic task is this number multiplied by the long-reasoning figure.</p>
+    </div>
+    <div class="field">
+      <label>Energy per image/video task (Wh) <span class="tag a">Assumption</span></label>
+      <input id="imageWh" type="number" min="0" step="0.1" value="2.5">
+      <p class="hint">No production benchmark exists. Google's measured figures explicitly exclude image and video prompts. This is a placeholder — set it to zero and exclude the category if you would rather not guess.</p>
+    </div>
+  </div>
+
+  <details class="adv">
+    <summary>Energy factors per task type — view or override</summary>
+    <div class="row r2">
+      <div class="factor">
+        <h3>Short text query <span class="tag p">Published</span></h3>
+        <p class="src">Oviedo et al., <em>Joule</em> (2026): median 0.31 Wh, interquartile range 0.16–0.60, for a frontier-scale model (&gt;200B parameters) at production scale. Cross-checks against Google's metered median Gemini prompt of 0.24 Wh.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="shortLo" type="number" step="0.01" min="0" value="0.16"></div>
+          <div><label>Central</label><input id="shortMid" type="number" step="0.01" min="0" value="0.31"></div>
+          <div><label>High</label><input id="shortHi" type="number" step="0.01" min="0" value="0.60"></div>
+        </div>
+      </div>
+      <div class="factor">
+        <h3>Long reasoning query <span class="tag p">Published</span></h3>
+        <p class="src">Oviedo et al.: at roughly 5,000 output tokens (15× a typical query), the median rises 13× to 3.91 Wh, interquartile range 2.15–7.05.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="longLo" type="number" step="0.01" min="0" value="2.15"></div>
+          <div><label>Central</label><input id="longMid" type="number" step="0.01" min="0" value="3.91"></div>
+          <div><label>High</label><input id="longHi" type="number" step="0.01" min="0" value="7.05"></div>
+        </div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:11px">Uncertainty ranges are recomputed from these fields and from the task mix. If you override a central value, the range moves with it — the reported range will always bracket the reported central estimate.</p>
+  </details>
+</section>
+
+<section class="block">
+  <h2><span class="num">04</span> Carbon and water conversion</h2>
+  <p class="blurb">Electricity is only the intermediate step. These factors turn kilowatt-hours into the two things a sustainability report actually needs.</p>
+
+  <fieldset>
+    <legend>Carbon</legend>
+    <div class="row r2">
+      <div class="factor">
+        <h3>Grid emissions factor, kgCO₂e/kWh <span class="tag p">Published</span></h3>
+        <p class="src">DESNZ 2026 UK electricity generation factor: 0.13096, down from 0.17700 in 2025. This is the <em>location-based</em> factor — the average carbon content of grid electricity. Add transmission and distribution losses if your reporting framework requires them.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="gridLo" type="number" step="0.001" min="0" value="0.10000"></div>
+          <div><label>Central</label><input id="gridMid" type="number" step="0.00001" min="0" value="0.13096"></div>
+          <div><label>High</label><input id="gridHi" type="number" step="0.001" min="0" value="0.19553"></div>
+        </div>
+      </div>
+      <div class="factor">
+        <h3>Supplier market-based cross-check, gCO₂e/prompt <span class="tag m">Measured</span></h3>
+        <p class="src">Google reports 0.03 gCO₂e for the median Gemini text prompt — 0.023 g Scope 2 market-based plus 0.010 g Scope 1 and 3. Market-based accounting credits the supplier's renewable energy purchases, so it reads far lower than the location-based figure. Applies to standard text prompts only.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="mbLo" type="number" step="0.001" min="0" value="0.01"></div>
+          <div><label>Central</label><input id="mbMid" type="number" step="0.001" min="0" value="0.03"></div>
+          <div><label>High</label><input id="mbHi" type="number" step="0.001" min="0" value="0.05"></div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Water</legend>
+    <div class="row r2">
+      <div class="factor">
+        <h3>Direct cooling water, L/kWh <span class="tag m">Measured</span></h3>
+        <p class="src">Water Usage Effectiveness, ISO/IEC 30134-9. Published fleet figures: AWS 0.12 (2025), Microsoft 0.27 (FY2025), industry average about 0.36 per Lawrence Berkeley National Laboratory, Google roughly 1.1 implied by its 0.26 mL per 0.24 Wh prompt. Microsoft's per-query range starts at 0.0 because some sites are closed-loop or air-cooled.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="wueLo" type="number" step="0.01" min="0" value="0.12"></div>
+          <div><label>Central</label><input id="wueMid" type="number" step="0.01" min="0" value="0.36"></div>
+          <div><label>High</label><input id="wueHi" type="number" step="0.01" min="0" value="1.10"></div>
+        </div>
+      </div>
+      <div class="factor">
+        <h3>Indirect water from power generation, L/kWh <span class="tag p">Published</span></h3>
+        <p class="src">Water consumed upstream generating the electricity. Often 80% or more of the true total. Published values: about 1.8 for a generic European grid, 3.92 disclosed by Meta for purchased electricity, 7.6 estimated by Lawrence Berkeley National Laboratory. Set to zero if you want direct cooling water only.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="indLo" type="number" step="0.1" min="0" value="1.8"></div>
+          <div><label>Central</label><input id="indMid" type="number" step="0.1" min="0" value="1.8"></div>
+          <div><label>High</label><input id="indHi" type="number" step="0.1" min="0" value="7.6"></div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+</section>
+
+<section class="block">
+  <h2><span class="num">05</span> Put it in proportion</h2>
+  <p class="blurb">A number with no denominator invites the wrong conclusion in either direction. Enter your institution's totals to see what share AI actually represents.</p>
+  <div class="row r2">
+    <div class="field">
+      <label>Institutional electricity, kWh/year <span class="tag i">Your data</span></label>
+      <input id="instKwh" class="need" type="number" min="0" placeholder="e.g. 45000000">
+      <p class="hint">Take the real figure from your estates team or your SECR return. Leave blank if you don't have it — the rest of the tool still works.</p>
+    </div>
+    <div class="field">
+      <label>Institutional water, m³/year <span class="tag i">Your data</span></label>
+      <input id="instWater" class="need" type="number" min="0" placeholder="e.g. 250000">
+      <p class="hint">Take the real figure from your utilities data. Leave blank if you don't have it — the rest of the tool still works.</p>
+    </div>
+  </div>
+
+  <div class="notice warn">
+    <strong>Read the small result carefully.</strong> This model will almost certainly tell you that AI inference is a negligible share of your footprint. That is a true statement about <em>inference within this boundary</em>, and not a finding that AI is environmentally insignificant. Excluded from the boundary: training the models, manufacturing the hardware, constructing and operating the wider data-centre estate, and the electricity your users' own laptops draw. Embedded supply-chain water alone exceeds 99% of the corporate water footprint at one major operator. Do not let this tool be quoted as an all-in figure.
+  </div>
+</section>
+
+</div>
+
+<!-- ============ RIGHT: RESULTS ============ -->
+<div>
+  <div class="sticky">
+    <div class="results">
+      <h2>Indicative annual impact</h2>
+      <p class="sub">Central estimate with plausible range. Rounded; treat as order-of-magnitude.</p>
+
+      <div class="metric">
+        <p class="m-label">Interactions</p>
+        <p class="m-value" id="oInteractions">—</p>
+        <p class="m-note" id="oBlend"></p>
+      </div>
+
+      <div class="metric">
+        <p class="m-label">Electricity</p>
+        <p class="m-value" id="oEnergy">—</p>
+        <div class="spread"><i id="sEnergy"></i><b id="mEnergy"></b></div>
+        <p class="m-range" id="oEnergyRange"></p>
+      </div>
+
+      <div class="metric">
+        <p class="m-label">Carbon — location-based</p>
+        <p class="m-value" id="oCarbon">—</p>
+        <div class="spread"><i id="sCarbon"></i><b id="mCarbon"></b></div>
+        <p class="m-range" id="oCarbonRange"></p>
+        <p class="m-note" id="oCarbonMb"></p>
+      </div>
+
+      <div class="metric">
+        <p class="m-label">Water — total consumed</p>
+        <p class="m-value" id="oWater">—</p>
+        <div class="spread"><i id="sWater"></i><b id="mWater"></b></div>
+        <p class="m-range" id="oWaterRange"></p>
+        <p class="m-note" id="oWaterSplit"></p>
+      </div>
+
+      <div class="share">
+        <span>Of institutional electricity<br><b id="oShareE">—</b></span>
+        <span>Of institutional water<br><b id="oShareW">—</b></span>
+        <span>Per person/year<br><b id="oPer">—</b></span>
+      </div>
+
+      <div class="actions">
+        <button class="act" type="button" id="btnLog">Copy the assumptions log</button>
+        <button class="act" type="button" id="btnPrint">Print or save as PDF</button>
+        <button class="act" type="button" id="btnReset">Reset to central</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>Suggested wording for a committee paper.</strong> “Illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Adoption rates are drawn from published survey evidence; interaction frequency and licence share are planning assumptions and are the dominant source of uncertainty.”
+    </div>
+  </div>
+</div>
+
+</div>
+
+<section class="sources">
+  <h2>Sources</h2>
+  <ol>
+    <li>Oviedo, F. et al., “Energy use of AI inference, efficiency pathways, and test-time scaling,” <em>Joule</em>, published online 22 April 2026. doi:10.1016/j.joule.2026.102430. Preprint: <a href="https://arxiv.org/abs/2509.20241">arxiv.org/abs/2509.20241</a>. Note: authored by Microsoft researchers.</li>
+    <li>Google, “Measuring the environmental impact of AI inference,” Google Cloud blog, 21 August 2025, and the accompanying technical paper <em>Measuring the environmental impact of delivering AI at Google scale</em>. Not peer-reviewed at time of publication.</li>
+    <li>Microsoft, “Scaling AI with 8 to 20x energy efficiency,” Microsoft Cloud blog, 15 June 2026.</li>
+    <li>Stephenson, R. and Armstrong, C., <em>Student Generative AI Survey 2026</em>, HEPI Report 199, sponsored by Kortext. Survey by Savanta, December 2025, 1,054 full-time UK undergraduates.</li>
+    <li>Department for Energy Security and Net Zero, <em>Greenhouse gas reporting: conversion factors 2026</em>. UK electricity generation factor 0.13096 kgCO₂e/kWh.</li>
+    <li>Li, P., Yang, J., Islam, M.A. and Ren, S., “Making AI Less Thirsty,” <em>Communications of the ACM</em>, 2024–25, for the direct/indirect water distinction.</li>
+    <li>Lawrence Berkeley National Laboratory, <em>2024 United States Data Center Energy Usage Report</em>, for site and source Water Usage Effectiveness.</li>
+    <li>International Energy Agency, <em>Energy and AI</em>, 2025, as an independent counterweight to supplier-published figures.</li>
+  </ol>
+  <p class="foot">Boundary: inference only, for generative AI provided under institutional licence. Excludes model training, hardware manufacture, data-centre construction, and end-user device energy. Two of the three per-query energy sources are Microsoft-authored or Microsoft-published, and the third is Google's own reporting; all three have an interest in low figures, and the Oviedo paper's central claim is that other published estimates are overstated by 4–20×. That may well be correct, but the tool's outputs inherit that position and should be presented as doing so. Version 2, built <span id="builtOn"></span>.</p>
+</section>
+
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const N = (el, fb) => { const v = Number(el.value); return Number.isFinite(v) && v >= 0 ? v : fb; };
+// blank-aware: an empty box means "not supplied", not "fall back to a default"
+const NB = el => {
+  if (el.value.trim() === '') return null;
+  const v = Number(el.value);
+  return Number.isFinite(v) && v >= 0 ? v : null;
+};
+
+const F = {
+  stuN:'', staN:'', stuWk:42, staWk:46,
+  stuAdopt:95, stuInst:45, stuWeekly:12,
+  staAdopt:78, staInst:60, staWeekly:20,
+  mixShort:70, mixLong:20, mixAgent:8, mixImage:2,
+  agentCalls:8, imageWh:2.5,
+  shortLo:0.16, shortMid:0.31, shortHi:0.60,
+  longLo:2.15, longMid:3.91, longHi:7.05,
+  gridLo:0.10, gridMid:0.13096, gridHi:0.19553,
+  mbLo:0.01, mbMid:0.03, mbHi:0.05,
+  wueLo:0.12, wueMid:0.36, wueHi:1.10,
+  indLo:1.8, indMid:1.8, indHi:7.6,
+  instKwh:'', instWater:''
+};
+
+const SCEN = {
+  low:  { stuInst:15, stuWeekly:4,  staAdopt:70, staInst:35, staWeekly:5,
+          mixShort:90, mixLong:8,  mixAgent:2,  mixImage:0, agentCalls:5, stuWk:40, staWk:44 },
+  med:  { stuInst:45, stuWeekly:12, staAdopt:78, staInst:60, staWeekly:20,
+          mixShort:70, mixLong:20, mixAgent:8,  mixImage:2, agentCalls:8, stuWk:42, staWk:46 },
+  high: { stuInst:80, stuWeekly:30, staAdopt:85, staInst:80, staWeekly:45,
+          mixShort:50, mixLong:30, mixAgent:15, mixImage:5, agentCalls:12, stuWk:46, staWk:48 }
+};
+
+const nf = (n, d = 0) => n.toLocaleString('en-GB', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+const energyF = k => k >= 1000 ? nf(k / 1000, 2) + '<small>MWh</small>' : nf(k, 0) + '<small>kWh</small>';
+const energyT = k => k >= 1000 ? nf(k / 1000, 2) + ' MWh' : nf(k, 0) + ' kWh';
+const carbonF = kg => kg >= 1000 ? nf(kg / 1000, 2) + '<small>tCO₂e</small>' : nf(kg, 0) + '<small>kgCO₂e</small>';
+const carbonT = kg => kg >= 1000 ? nf(kg / 1000, 2) + ' tCO2e' : nf(kg, 0) + ' kgCO2e';
+const waterF = l => l >= 1000 ? nf(l / 1000, 1) + '<small>m³</small>' : nf(l, 0) + '<small>L</small>';
+const waterT = l => l >= 1000 ? nf(l / 1000, 1) + ' m3' : nf(l, 0) + ' L';
+
+let LAST = null;
+
+function bandFill(barEl, markEl, lo, mid, hi) {
+  const span = hi > 0 ? hi : 1;
+  barEl.style.left = (100 * lo / span) + '%';
+  barEl.style.width = (100 * Math.max(0, hi - lo) / span) + '%';
+  markEl.style.left = 'calc(' + (100 * mid / span) + '% - 1px)';
+}
+
+function emptyState() {
+  ['oEnergy','oCarbon','oWater'].forEach(id => { $(id).innerHTML = '—'; });
+  $('oInteractions').textContent = '—';
+  $('oBlend').textContent = 'Enter your student and staff numbers in section 01 to begin. Nothing you type is saved or sent anywhere — the calculation runs entirely in your browser.';
+  ['oEnergyRange','oCarbonRange','oCarbonMb','oWaterRange','oWaterSplit'].forEach(id => { $(id).textContent = ''; });
+  ['sEnergy','sCarbon','sWater'].forEach(id => { $(id).style.width = '0%'; });
+  ['mEnergy','mCarbon','mWater'].forEach(id => { $(id).style.left = '-9px'; });
+  ['oShareE','oShareW','oPer'].forEach(id => { $(id).textContent = '—'; });
+  LAST = null;
+}
+
+function calc() {
+  // --- population and interactions ---
+  const stuHead = NB($('stuN')), staHead = NB($('staN'));
+  if (stuHead === null && staHead === null) { emptyState(); return; }
+  const stuActive = (stuHead ?? 0) * (N($('stuAdopt'), F.stuAdopt) / 100) * (N($('stuInst'), F.stuInst) / 100);
+  const staActive = (staHead ?? 0) * (N($('staAdopt'), F.staAdopt) / 100) * (N($('staInst'), F.staInst) / 100);
+  const stuInt = stuActive * N($('stuWeekly'), F.stuWeekly) * N($('stuWk'), F.stuWk);
+  const staInt = staActive * N($('staWeekly'), F.staWeekly) * N($('staWk'), F.staWk);
+  const interactions = stuInt + staInt;
+
+  // --- task mix, normalised ---
+  let ms = N($('mixShort'), F.mixShort), ml = N($('mixLong'), F.mixLong),
+      ma = N($('mixAgent'), F.mixAgent), mi = N($('mixImage'), F.mixImage);
+  const sum = ms + ml + ma + mi;
+  const warn = $('mixwarn');
+  if (Math.abs(sum - 100) > 0.5) {
+    warn.textContent = 'Task shares total ' + nf(sum, 1) + '%, not 100%. Results below are normalised to 100% so they stay valid, but adjust the shares to remove the ambiguity.';
+    warn.classList.add('on');
+  } else { warn.classList.remove('on'); }
+  const d = sum > 0 ? sum : 1;
+  ms /= d; ml /= d; ma /= d; mi /= d;
+
+  // --- blended Wh per interaction at each bound ---
+  const calls = Math.max(1, N($('agentCalls'), F.agentCalls));
+  const img = N($('imageWh'), F.imageWh);
+  const sLo = N($('shortLo'), F.shortLo), sMid = N($('shortMid'), F.shortMid), sHi = N($('shortHi'), F.shortHi);
+  const lLo = N($('longLo'), F.longLo), lMid = N($('longMid'), F.longMid), lHi = N($('longHi'), F.longHi);
+
+  const blend = (s, l) => ms * s + ml * l + ma * (l * calls) + mi * img;
+  const whLo = blend(sLo, lLo), whMid = blend(sMid, lMid), whHi = blend(sHi, lHi);
+
+  // --- energy ---
+  const eLo = interactions * whLo / 1000, eMid = interactions * whMid / 1000, eHi = interactions * whHi / 1000;
+
+  // --- carbon ---
+  const cLo = eLo * N($('gridLo'), F.gridLo), cMid = eMid * N($('gridMid'), F.gridMid), cHi = eHi * N($('gridHi'), F.gridHi);
+  const mbMid = interactions * N($('mbMid'), F.mbMid) / 1000; // g -> kg
+
+  // --- water ---
+  const dLo = eLo * N($('wueLo'), F.wueLo), dMid = eMid * N($('wueMid'), F.wueMid), dHi = eHi * N($('wueHi'), F.wueHi);
+  const iLo = eLo * N($('indLo'), F.indLo), iMid = eMid * N($('indMid'), F.indMid), iHi = eHi * N($('indHi'), F.indHi);
+  const wLo = dLo + iLo, wMid = dMid + iMid, wHi = dHi + iHi;
+
+  // --- render ---
+  $('oInteractions').textContent = nf(interactions);
+  $('oBlend').textContent = 'Blended ' + nf(whMid, 2) + ' Wh per interaction across the task mix — ' +
+    (whMid / (sMid || 1)).toFixed(1) + '× a short text query.';
+
+  $('oEnergy').innerHTML = energyF(eMid);
+  $('oEnergyRange').textContent = energyT(eLo) + ' – ' + energyT(eHi);
+  bandFill($('sEnergy'), $('mEnergy'), eLo, eMid, eHi);
+
+  $('oCarbon').innerHTML = carbonF(cMid);
+  $('oCarbonRange').textContent = carbonT(cLo) + ' – ' + carbonT(cHi);
+  $('oCarbonMb').textContent = 'Market-based cross-check on the same volume: ' + carbonT(mbMid) +
+    '. The gap between the two is an accounting choice about renewable energy purchases, not a modelling error.';
+  bandFill($('sCarbon'), $('mCarbon'), cLo, cMid, cHi);
+
+  $('oWater').innerHTML = waterF(wMid);
+  $('oWaterRange').textContent = waterT(wLo) + ' – ' + waterT(wHi);
+  const dPct = wMid > 0 ? (100 * dMid / wMid) : 0;
+  $('oWaterSplit').textContent = 'Direct cooling ' + waterT(dMid) + ' (' + nf(dPct, 0) + '%) · upstream generation ' + waterT(iMid) + ' (' + nf(100 - dPct, 0) + '%).';
+  bandFill($('sWater'), $('mWater'), wLo, wMid, wHi);
+
+  const ik = NB($('instKwh')), iw = NB($('instWater'));
+  const headcount = (stuHead ?? 0) + (staHead ?? 0);
+  $('oShareE').textContent = ik ? (100 * eMid / ik).toFixed(3) + '%' : 'add total';
+  $('oShareW').textContent = iw ? (100 * (wMid / 1000) / iw).toFixed(3) + '%' : 'add total';
+  $('oPer').textContent = headcount > 0 ? nf(1000 * eMid / headcount, 0) + ' Wh' : '—';
+
+  LAST = { interactions, stuInt, staInt, whMid, eMid, eLo, eHi, cMid, mbMid, wMid, dMid, iMid, headcount };
+}
+
+function applyScenario(name) {
+  const s = SCEN[name];
+  Object.keys(s).forEach(k => { if ($(k)) $(k).value = s[k]; });
+  document.querySelectorAll('.scen').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === name)));
+  calc();
+}
+
+function assumptionsLog() {
+  const g = id => $(id).value;
+  return [
+    'GENERATIVE AI ENVIRONMENTAL IMPACT — ASSUMPTIONS LOG',
+    'Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
+    '',
+    'BOUNDARY',
+    'Inference only, for generative AI provided under institutional licence.',
+    'Excludes model training, hardware manufacture, data-centre construction, end-user devices.',
+    '',
+    'POPULATION [your data]',
+    '  Students ' + g('stuN') + ' · Staff ' + g('staN'),
+    '  Active weeks: students ' + g('stuWk') + ', staff ' + g('staWk') + ' [assumption]',
+    '',
+    'UTILISATION',
+    '  Students using GenAI at all: ' + g('stuAdopt') + '% [published: HEPI 2026, 95%]',
+    '  Of those, via institutional licence: ' + g('stuInst') + '% [assumption — dominant uncertainty]',
+    '  Interactions per active student per week: ' + g('stuWeekly') + ' [assumption]',
+    '  Staff using GenAI at all: ' + g('staAdopt') + '% [assumption, weak evidence]',
+    '  Of those, via institutional licence: ' + g('staInst') + '% [assumption]',
+    '  Interactions per active staff member per week: ' + g('staWeekly') + ' [assumption]',
+    '  Resulting interactions: ' + nf(LAST.interactions) +
+      ' (students ' + nf(LAST.stuInt) + ', staff ' + nf(LAST.staInt) + ')',
+    '',
+    'TASK MIX [mix shares are assumptions; energy factors are published]',
+    '  Short text ' + g('mixShort') + '% at ' + g('shortMid') + ' Wh (range ' + g('shortLo') + '–' + g('shortHi') + ')',
+    '  Long reasoning ' + g('mixLong') + '% at ' + g('longMid') + ' Wh (range ' + g('longLo') + '–' + g('longHi') + ')',
+    '  Agentic ' + g('mixAgent') + '% at ' + g('agentCalls') + ' model calls per task',
+    '  Image/video ' + g('mixImage') + '% at ' + g('imageWh') + ' Wh [no published benchmark]',
+    '  Blended: ' + nf(LAST.whMid, 2) + ' Wh per interaction',
+    '',
+    'CONVERSION FACTORS',
+    '  Grid emissions (location-based): ' + g('gridMid') + ' kgCO2e/kWh [DESNZ 2026]',
+    '  Market-based cross-check: ' + g('mbMid') + ' gCO2e/prompt [Google, measured]',
+    '  Direct cooling water (WUE): ' + g('wueMid') + ' L/kWh [supplier-measured range 0.12–1.10]',
+    '  Indirect water from generation: ' + g('indMid') + ' L/kWh [published range 1.8–7.6]',
+    '',
+    'RESULTS (central estimate)',
+    '  Electricity: ' + energyT(LAST.eMid) + '   range ' + energyT(LAST.eLo) + ' – ' + energyT(LAST.eHi),
+    '  Carbon, location-based: ' + carbonT(LAST.cMid),
+    '  Carbon, market-based cross-check: ' + carbonT(LAST.mbMid),
+    '  Water total: ' + waterT(LAST.wMid) + '  (direct ' + waterT(LAST.dMid) + ', upstream ' + waterT(LAST.iMid) + ')',
+    '',
+    'CAVEAT',
+    'A scenario, not a measurement. Replace utilisation assumptions with supplier usage data',
+    'as soon as it becomes available. The small result reflects the chosen boundary and is not',
+    'evidence that AI is environmentally insignificant.',
+    '',
+    'SOURCES',
+    '  Oviedo et al., Joule (2026), doi:10.1016/j.joule.2026.102430',
+    '  Google Cloud, Measuring the environmental impact of AI inference, 21 Aug 2025',
+    '  Microsoft Cloud, Scaling AI with 8 to 20x energy efficiency, 15 Jun 2026',
+    '  HEPI Report 199, Student Generative AI Survey 2026',
+    '  DESNZ, Greenhouse gas reporting conversion factors 2026',
+    '  Li/Ren et al., Making AI Less Thirsty, CACM; LBNL 2024 US Data Center Energy Usage Report'
+  ].join('\n');
+}
+
+// --- wiring ---
+document.querySelectorAll('input[type=number]').forEach(el => el.addEventListener('input', calc));
+document.querySelectorAll('.scen').forEach(b => b.addEventListener('click', () => applyScenario(b.dataset.s)));
+
+$('btnReset').addEventListener('click', () => {
+  Object.keys(F).forEach(k => { if ($(k)) $(k).value = F[k]; });
+  applyScenario('med');
+});
+
+$('btnPrint').addEventListener('click', () => window.print());
+
+$('btnLog').addEventListener('click', async () => {
+  const btn = $('btnLog');
+  if (!LAST) {
+    btn.textContent = 'Enter your headcount first';
+    setTimeout(() => { btn.textContent = 'Copy the assumptions log'; }, 2400);
+    return;
+  }
+  const text = assumptionsLog();
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = 'Copied to clipboard';
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); btn.textContent = 'Copied to clipboard'; }
+    catch { btn.textContent = 'Copy failed — press Ctrl+C'; ta.style.opacity = '1'; }
+    setTimeout(() => ta.remove(), 100);
+  }
+  setTimeout(() => { btn.textContent = 'Copy the assumptions log'; }, 2400);
+});
+
+$('builtOn').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+calc();
+})();
+</script>
+</body>
+</html>
