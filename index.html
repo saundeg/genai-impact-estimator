@@ -20,10 +20,12 @@
   --keel-soft:#dfeaea;
 
   /* provenance tiers */
-  --tier-m:#0b6b6f;        /* measured in production */
-  --tier-p:#3b4a8c;        /* peer-reviewed / published */
-  --tier-i:#8a6212;        /* your institution supplies */
-  --tier-a:#9c3a2c;        /* assumption, not evidenced */
+  --tier-m:#00a6ae;        /* measured in production */
+  --tier-p:#2f5be0;        /* peer-reviewed / published */
+  --tier-i:#e8a11a;        /* your institution supplies */
+  --tier-a:#d23b21;        /* assumption, not evidenced */
+  --tier-m-ink:#00696e;    /* darker variants for text/borders on pale ground */
+  --tier-i-ink:#8a6212;
 
   --sans:"IBM Plex Sans Condensed",Arial Narrow,Helvetica,sans-serif;
   --serif:"IBM Plex Serif",Georgia,serif;
@@ -50,7 +52,7 @@ h1{font-family:var(--sans);font-weight:700;font-size:clamp(1.9rem,4.4vw,3rem);li
 .key-items{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .key-item{font-size:.94rem;line-height:1.45;color:var(--ink-2);padding-left:20px;position:relative}
 .key-item b{display:block;font-family:var(--sans);font-size:1.02rem;letter-spacing:.01em;color:var(--ink)}
-.key-item::before{content:"";position:absolute;left:0;top:.42em;width:10px;height:10px;border-radius:2px}
+.key-item::before{content:"";position:absolute;left:0;top:.4em;width:13px;height:13px;border-radius:3px}
 .key-item.m::before{background:var(--tier-m)}
 .key-item.p::before{background:var(--tier-p)}
 .key-item.i::before{background:var(--tier-i)}
@@ -59,8 +61,10 @@ h1{font-family:var(--sans);font-weight:700;font-size:clamp(1.9rem,4.4vw,3rem);li
 /* ---------- provenance chip on any element ---------- */
 .tag{display:inline-block;font-family:var(--mono);font-size:.78rem;font-weight:600;letter-spacing:.08em;
   text-transform:uppercase;padding:2px 6px;border-radius:2px;vertical-align:.12em;margin-left:7px;white-space:nowrap;color:#fff}
-.tag.m{background:var(--tier-m)}.tag.p{background:var(--tier-p)}
-.tag.i{background:var(--tier-i)}.tag.a{background:var(--tier-a)}
+.tag.m{background:var(--tier-m);color:#08262a}
+.tag.p{background:var(--tier-p)}
+.tag.i{background:var(--tier-i);color:#2e1f00}
+.tag.a{background:var(--tier-a)}
 
 /* ---------- layout ---------- */
 .cols{display:grid;grid-template-columns:minmax(0,1.28fr) minmax(0,1fr);gap:30px;align-items:start;margin-top:30px}
@@ -86,7 +90,7 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
 .field input{width:100%;font-family:var(--mono);font-size:17px;padding:10px 11px;
   border:1px solid var(--rule);border-radius:0;background:#fbfcfc;color:var(--ink)}
 .field input:focus{outline:2px solid var(--keel);outline-offset:1px;background:#fff}
-.field input.need:placeholder-shown{border:1px dashed var(--tier-i);background:#fffdf5}
+.field input.need:placeholder-shown{border:2px dashed var(--tier-i-ink);background:#fffbef}
 .field input.need:placeholder-shown::placeholder{color:#a98c4e}
 .hint{font-size:.87rem;color:var(--ink-3);margin:6px 0 0;line-height:1.5}
 .hint code{font-family:var(--mono);font-size:.95em}
@@ -132,7 +136,7 @@ button.act:focus-visible{outline:2px solid #7fd0d4;outline-offset:1px}
 .notice strong{color:var(--ink);font-family:var(--sans)}
 .notice.warn{border-left-color:var(--tier-a);background:#fbf4f2}
 
-.mixwarn{font-family:var(--mono);font-size:.87rem;color:var(--tier-a);margin:9px 0 0;display:none}
+.mixwarn{font-family:var(--mono);font-size:.87rem;color:#a82d16;margin:9px 0 0;display:none}
 .mixwarn.on{display:block}
 
 details.adv{border-top:1px solid var(--rule-soft);margin-top:18px;padding-top:14px}
@@ -207,7 +211,7 @@ details.adv[open] summary{margin-bottom:16px}
     <div class="key-items">
       <div class="key-item m"><b>Measured</b>Metered by the supplier in live production and published.</div>
       <div class="key-item p"><b>Published estimate</b>From peer-reviewed or formally published analysis.</div>
-      <div class="key-item i"><b>Your data</b>Only your institution can supply this. Replace the placeholder.</div>
+      <div class="key-item i"><b>Your data</b>Only your institution can supply this. These boxes start empty.</div>
       <div class="key-item a"><b>Assumption</b>Invented for planning. No published basis. Treat as a dial, not a fact.</div>
     </div>
   </div>
@@ -486,6 +490,7 @@ details.adv[open] summary{margin-bottom:16px}
     <li>Li, P., Yang, J., Islam, M.A. and Ren, S., “Making AI Less Thirsty,” <em>Communications of the ACM</em>, 2024–25, for the direct/indirect water distinction.</li>
     <li>Lawrence Berkeley National Laboratory, <em>2024 United States Data Center Energy Usage Report</em>, for site and source Water Usage Effectiveness.</li>
     <li>International Energy Agency, <em>Energy and AI</em>, 2025, as an independent counterweight to supplier-published figures.</li>
+    <li><strong>Everyday comparisons:</strong> Ofgem, <em>Review of typical domestic consumption values</em> — medium household electricity reduced from 2,700 to 2,500 kWh a year with effect from 1 July 2026. Household water of about 140 litres per person per day is the England and Wales average (Ofwat; Water UK cites 137 from Discover Water). Average petrol car taken at 0.17 kgCO\u2082e per km. Olympic pool taken as 2,500 m\u00B3, a filled bath as 80 litres.</li>
   </ol>
   <p class="foot">Boundary: inference only, for generative AI provided under institutional licence. Excludes model training, hardware manufacture, data-centre construction, and end-user device energy. Two of the three per-query energy sources are Microsoft-authored or Microsoft-published, and the third is Google's own reporting; all three have an interest in low figures, and the Oviedo paper's central claim is that other published estimates are overstated by 4–20×. That may well be correct, but the tool's outputs inherit that position and should be presented as doing so. Version 2, built <span id="builtOn"></span>.</p>
 </section>

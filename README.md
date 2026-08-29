@@ -2,7 +2,7 @@
 
 A scenario calculator for estimating the annual electricity, carbon and water associated with generative AI provided to staff and students under an institutional licence.
 
-**[Open the calculator →](https://saundeg.github.io/genai-impact-estimator/)**
+**[Open the calculator →](https://YOURUSERNAME.github.io/genai-impact-estimator/)**
 
 ---
 
@@ -66,6 +66,25 @@ The answer is only as good as the weakest link in the chain, and several links a
 
 ---
 
+## Everyday comparisons
+
+The calculator also translates its results into human-scale comparisons — homes powered, miles driven, baths filled — because raw kilowatt-hours mean little to most readers.
+
+These are **illustrative, never evidence.** The denominator you choose controls the impression entirely: the same quantity of electricity can be described as "eight houses" or "a small town", and which one you pick is a rhetorical choice rather than a factual one. For that reason the tool displays the basis for every comparison on screen, and any paper quoting one should quote its basis too. Never substitute a comparison for the actual figure.
+
+| Comparison | Basis |
+|---|---|
+| UK home's annual electricity | 2,500 kWh — Ofgem typical domestic consumption value, reduced from 2,700 with effect from 1 July 2026 |
+| Household water per person | 140 litres per day, about 51 m³ a year — England and Wales average |
+| Driving an average petrol car | 0.17 kgCO₂e per km |
+| Home electricity emissions | Derived from the grid factor set in the tool, so it moves if you change it |
+| Olympic swimming pool | 2,500 m³ |
+| Filled bath | 80 litres |
+
+Note that most equivalence calculators online still use Ofgem's old 2,700 kWh household figure, which became out of date on 1 July 2026.
+
+---
+
 ## Glossary
 
 Grouped by topic rather than alphabetically, because the terms make more sense in clusters.
@@ -74,7 +93,7 @@ Grouped by topic rather than alphabetically, because the terms make more sense i
 
 **Watt-hour (Wh)** — a unit of energy. One watt-hour runs a one-watt device for an hour. A laptop charger draws around 45 watts, so a Wh is roughly a minute and a half of laptop charging.
 
-**Kilowatt-hour (kWh)** — 1,000 watt-hours. The unit on an electricity bill. A UK household uses roughly 2,700 kWh a year.
+**Kilowatt-hour (kWh)** — 1,000 watt-hours. The unit on an electricity bill. A UK household uses roughly 2,500 kWh a year (Ofgem, from 1 July 2026; the widely quoted 2,700 figure is now out of date).
 
 **Megawatt-hour (MWh)** — 1,000 kWh. The tool switches to this unit automatically once numbers get large.
 
@@ -144,6 +163,8 @@ Grouped by topic rather than alphabetically, because the terms make more sense i
 - Li, P., Yang, J., Islam, M.A. and Ren, S., "Making AI Less Thirsty," *Communications of the ACM*
 - Lawrence Berkeley National Laboratory, *2024 United States Data Center Energy Usage Report*
 - International Energy Agency, *Energy and AI*, 2025
+- Ofgem, *Review of typical domestic consumption values*, decision implemented 1 July 2026 — for the household electricity comparison
+- Ofwat and Water UK, for average household water consumption per person
 
 ---
 
