@@ -18,7 +18,9 @@ Nothing you type into the calculator is saved, transmitted or visible to anyone 
 
 ## What it does
 
-It works through a chain of multiplications:
+**If you already know how many queries an AI application handled** — many chatbots and assistants report this — enter that figure directly in the "Known applications" section at the top of the tool. It is added straight to the electricity total, bypassing every assumption below. If every AI tool you use has a known figure, you can skip the headcount fields entirely.
+
+For anything you don't have real data for, the tool works through a chain of multiplications:
 
 1. **How many people use it.** Your headcount, multiplied by how many people use AI at all, multiplied by how much of that use runs through your institution's licence rather than personal free accounts.
 2. **How often.** Interactions per active person per week, across the academic year.
@@ -46,7 +48,7 @@ The answer is only as good as the weakest link in the chain, and several links a
 |---|---|---|
 | Students using AI at all | 95% | **Strong.** Published survey of 1,054 UK undergraduates, December 2025 |
 | Staff using AI at all | 78% | **Weak.** No UK higher-education figure exists |
-| Share of use on institutional licences | 45% / 60% | **No evidence.** Invented — replace this first |
+| Share of use on institutional licences | 45% / 60% | **No evidence.** Both figures are invented. They exist only because real query counts aren't yet available — once you have one, enter it in the Known applications section instead |
 | Interactions per person per week | 12 / 20 | **No evidence.** Invented |
 | Energy, short text query | 0.31 Wh | **Strong.** Peer-reviewed, *Joule*, April 2026 |
 | Energy, long reasoning query | 3.91 Wh | **Strong.** Same paper, ~5,000 output tokens |
@@ -61,7 +63,7 @@ The answer is only as good as the weakest link in the chain, and several links a
 
 ## Two warnings
 
-**The result will look trivially small, and that is a trap.** Even the intensive scenario rounds to nothing against a university's total footprint. That is a true statement about *inference within the chosen boundary*. It excludes training the models, manufacturing the chips, building the data centres, and the electricity users' own laptops draw. Those excluded items are where the large numbers live — one major operator reports that supply-chain water alone exceeds 99% of its corporate water footprint. If this output is quoted as an all-in figure for AI's environmental impact, it will be seriously misleading.
+**The result will look trivially small, and that is a trap.** Even the intensive scenario rounds to nothing against a university's total footprint. That is a true statement about *inference within the chosen boundary*. It excludes training the models, manufacturing the chips, building the data centres, and the electricity users' own laptops draw. Those excluded items are where the large numbers live — Apple has reported that its supply chain accounts for 99% of its total corporate water footprint, cited in the literature as the clearest published illustration of how much larger supply-chain water use is than direct operational use. If this output is quoted as an all-in figure for AI's environmental impact, it will be seriously misleading.
 
 **The sources have an interest in the answer.** Two of the three per-query energy figures come from Microsoft, and the third is Google reporting on itself. The Microsoft paper's central claim is that everyone else's published estimates are overstated by four to twenty times. That may well be correct — it is peer-reviewed and its method is transparent — but these outputs inherit that position, and any paper using them should say so.
 
@@ -71,7 +73,7 @@ The answer is only as good as the weakest link in the chain, and several links a
 
 The calculator also translates its results into human-scale comparisons — homes powered, miles driven, baths filled — because raw kilowatt-hours mean little to most readers.
 
-These are **illustrative, never evidence.** The denominator you choose controls the impression entirely: the same quantity of electricity can be described as "eight houses" or "a small town", and which one you pick is a rhetorical choice rather than a factual one. For that reason the tool displays the basis for every comparison on screen, and any paper quoting one should quote its basis too. Never substitute a comparison for the actual figure.
+These are **illustrative, never evidence.** The denominator you choose controls the impression entirely: the same quantity of electricity can be described as "what eight UK homes use in a year" or "what it takes to drive a petrol car 65,000 miles", and the choice between them is a matter of presentation rather than fact. For that reason the tool displays the basis for every comparison on screen, and any paper quoting one should quote its basis too. Never substitute a comparison for the actual figure.
 
 | Comparison | Basis |
 |---|---|
@@ -148,7 +150,7 @@ Grouped by topic rather than alphabetically, because the terms make more sense i
 
 ## What would improve this most
 
-1. **Ask your suppliers for usage counts.** Microsoft, Google and OpenAI enterprise agreements can report prompt or token volumes at tenant level. Actual interaction counts would remove the two weakest assumptions in one step.
+1. **Ask your suppliers for usage counts.** Microsoft, Google and OpenAI enterprise agreements can report prompt or token volumes at tenant level. Actual interaction counts would remove the two weakest assumptions in one step. Where a figure is already available — an internal chatbot or assistant, for example — enter it in the "Known applications" section rather than folding it into the scenario percentages.
 2. **Ask for their WUE and PUE at the regions serving you.** Both are increasingly disclosed, and EU rules now require data centres above 500 kW to report water use annually.
 3. **Decide the reporting basis before the number is needed.** Location-based or market-based; direct water only or direct plus upstream. Settling this in advance stops the tool being tuned after the fact.
 

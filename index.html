@@ -105,6 +105,33 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
 .scen b{display:block;font-family:var(--sans);font-size:1.12rem;font-weight:700;margin-bottom:3px}
 .scen span{font-size:.9rem;color:var(--ink-2);line-height:1.45;display:block}
 
+
+.known{background:var(--card);border:1px solid var(--rule);padding:20px 22px;margin-bottom:20px}
+.known > h2{font-family:var(--sans);font-weight:700;font-size:1.28rem;letter-spacing:-.005em;margin:0 0 4px;
+  display:flex;align-items:baseline;gap:9px}
+.known > h2 .num{font-family:var(--mono);font-size:.82rem;color:var(--keel);font-weight:600;letter-spacing:.06em}
+.known > .blurb{color:var(--ink-3);font-size:.97rem;margin:0 0 18px;max-width:64ch}
+.knownRows{display:flex;flex-direction:column;gap:14px;margin-bottom:14px}
+.knownRow{border:1px solid var(--rule-soft);background:#fbfcfc;padding:14px 16px;position:relative}
+.knownRow .krGrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr auto;gap:12px;align-items:end}
+.knownRow label{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:5px;font-weight:500}
+.knownRow input,.knownRow select{width:100%;font-family:var(--mono);font-size:15px;padding:8px 9px;
+  border:1px solid var(--rule);background:#fff;color:var(--ink)}
+.knownRow input:focus,.knownRow select:focus{outline:2px solid var(--keel);outline-offset:1px}
+.krRemove{background:transparent;border:1px solid var(--rule);color:var(--ink-3);font-size:.8rem;
+  padding:8px 10px;cursor:pointer;font-family:var(--sans);height:38px}
+.krRemove:hover{border-color:var(--tier-a);color:var(--tier-a)}
+.krResult{font-family:var(--mono);font-size:.82rem;color:var(--keel);margin-top:9px;padding-top:9px;
+  border-top:1px solid var(--rule-soft)}
+.knownAdd{font-family:var(--sans);font-weight:600;font-size:.9rem;padding:9px 14px;
+  border:1px dashed var(--rule);background:transparent;color:var(--keel);cursor:pointer;width:100%}
+.knownAdd:hover{border-color:var(--keel);background:var(--keel-soft)}
+.knownTotal{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);
+  display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans)}
+.knownTotal .kt-label{font-size:.9rem;color:var(--ink-2)}
+.knownTotal .kt-value{font-family:var(--mono);font-size:1.3rem;font-weight:600;color:var(--keel)}
+
 /* ---------- results ---------- */
 .results{background:var(--ink);color:#e9eef0;border:1px solid var(--ink);padding:22px}
 .results h2{font-family:var(--sans);font-size:1.2rem;font-weight:700;margin:0 0 3px;color:#fff}
@@ -182,6 +209,7 @@ details.adv[open] summary{margin-bottom:16px}
 }
 @media(max-width:560px){
   .r2,.r3,.r4,.r5,.scenarios{grid-template-columns:1fr}
+  .knownRow .krGrid{grid-template-columns:1fr!important}
   .key-items{grid-template-columns:1fr}
   .metric .m-value{font-size:1.75rem}
 }
@@ -222,6 +250,21 @@ details.adv[open] summary{margin-bottom:16px}
 
 <!-- ============ LEFT: INPUTS ============ -->
 <div>
+
+
+<section class="known">
+  <h2><span class="num">00</span> Known applications <span class="tag m">Measured</span></h2>
+  <p class="blurb">If a supplier or an internal system already tells you exactly how many queries an AI application handled — as many chatbot and assistant platforms do — enter it directly here rather than estimating it. These figures are added on top of the scenario estimate in section 05, and are excluded from the scenario model below so nothing is double-counted.</p>
+
+  <div class="knownRows" id="knownRows"></div>
+
+  <button class="knownAdd" type="button" id="addKnown">+ Add a known application</button>
+
+  <div class="knownTotal">
+    <span class="kt-label">Electricity from known applications</span>
+    <span class="kt-value" id="knownTotalKwh">0 kWh</span>
+  </div>
+</section>
 
 <section class="block">
   <h2><span class="num">01</span> Who has access</h2>
@@ -627,6 +670,85 @@ function renderEquivalences(eMid, cMid, wMid, gridFactor) {
   ).join('');
 }
 
+
+// ---- known applications: real measured query counts, added on top of the scenario model ----
+let knownRowId = 0;
+const KNOWN_TYPES = [
+  { key: 'short', label: 'Short text (0.31 Wh)', wh: () => N($('shortMid'), F.shortMid) },
+  { key: 'long',  label: 'Long reasoning (3.91 Wh)', wh: () => N($('longMid'), F.longMid) },
+  { key: 'image', label: 'Image generation (2.9 Wh)', wh: () => N($('imgMid'), F.imgMid) },
+  { key: 'video', label: 'Video generation (944 Wh)', wh: () => N($('vidMid'), F.vidMid) },
+  { key: 'custom', label: 'Custom Wh per query', wh: null }
+];
+
+function addKnownRow(prefill) {
+  const id = 'kr' + (knownRowId++);
+  const row = document.createElement('div');
+  row.className = 'knownRow';
+  row.dataset.id = id;
+  row.innerHTML = `
+    <div class="krGrid">
+      <div>
+        <label>Application name</label>
+        <input type="text" class="kr-name" placeholder="e.g. Learnwise SCAI assistant" value="${prefill && prefill.name ? prefill.name : ''}">
+      </div>
+      <div>
+        <label>Queries per year <span class="tag m" style="font-size:.6rem">Measured</span></label>
+        <input type="number" min="0" class="kr-count" placeholder="e.g. 19440" value="${prefill && prefill.count ? prefill.count : ''}">
+      </div>
+      <div>
+        <label>Query type</label>
+        <select class="kr-type">
+          ${KNOWN_TYPES.map(t => '<option value="' + t.key + '">' + t.label + '</option>').join('')}
+        </select>
+      </div>
+      <div class="kr-custom-wrap" style="display:none">
+        <label>Wh per query</label>
+        <input type="number" min="0" step="0.01" class="kr-custom" value="0.31">
+      </div>
+      <button type="button" class="krRemove">Remove</button>
+    </div>
+    <p class="krResult"></p>
+  `;
+  $('knownRows').appendChild(row);
+
+  const typeSel = row.querySelector('.kr-type');
+  const customWrap = row.querySelector('.kr-custom-wrap');
+  const grid = row.querySelector('.krGrid');
+  typeSel.addEventListener('change', () => {
+    customWrap.style.display = typeSel.value === 'custom' ? 'block' : 'none';
+    grid.style.gridTemplateColumns = typeSel.value === 'custom' ? '1.3fr 1fr 1fr 1fr auto' : '1.6fr 1fr 1fr auto';
+    calc();
+  });
+  row.querySelectorAll('input').forEach(el => el.addEventListener('input', calc));
+  row.querySelector('.krRemove').addEventListener('click', () => { row.remove(); calc(); });
+
+  if (prefill && prefill.type) typeSel.value = prefill.type;
+  return row;
+}
+
+function knownApplicationsKwh() {
+  let totalKwh = 0;
+  document.querySelectorAll('#knownRows .knownRow').forEach(row => {
+    const count = Number(row.querySelector('.kr-count').value) || 0;
+    const typeKey = row.querySelector('.kr-type').value;
+    const type = KNOWN_TYPES.find(t => t.key === typeKey);
+    const wh = type.key === 'custom'
+      ? (Number(row.querySelector('.kr-custom').value) || 0)
+      : type.wh();
+    const kwh = count * wh / 1000;
+    totalKwh += kwh;
+    const resultEl = row.querySelector('.krResult');
+    resultEl.textContent = count > 0
+      ? nf(count) + ' queries \u00D7 ' + wh.toFixed(2) + ' Wh = ' + (kwh >= 1 ? nf(kwh, 2) + ' kWh a year' : nf(kwh * 1000, 0) + ' Wh a year')
+      : '';
+  });
+  $('knownTotalKwh').textContent = totalKwh >= 1000 ? nf(totalKwh / 1000, 2) + ' MWh' : nf(totalKwh, 2) + ' kWh';
+  return totalKwh;
+}
+
+$('addKnown').addEventListener('click', () => { addKnownRow(); calc(); });
+
 let LAST = null;
 
 function bandFill(barEl, markEl, lo, mid, hi) {
@@ -650,8 +772,9 @@ function emptyState() {
 
 function calc() {
   // --- population and interactions ---
+  const knownKwh = knownApplicationsKwh();
   const stuHead = NB($('stuN')), staHead = NB($('staN'));
-  if (stuHead === null && staHead === null) { emptyState(); return; }
+  if (stuHead === null && staHead === null && knownKwh === 0) { emptyState(); return; }
   const stuActive = (stuHead ?? 0) * (N($('stuAdopt'), F.stuAdopt) / 100) * (N($('stuInst'), F.stuInst) / 100);
   const staActive = (staHead ?? 0) * (N($('staAdopt'), F.staAdopt) / 100) * (N($('staInst'), F.staInst) / 100);
   const stuInt = stuActive * N($('stuWeekly'), F.stuWeekly) * N($('stuWk'), F.stuWk);
@@ -682,7 +805,7 @@ function calc() {
   const whLo = blend(sLo, lLo, iLo_, vLo_), whMid = blend(sMid, lMid, iMid_, vMid_), whHi = blend(sHi, lHi, iHi_, vHi_);
 
   // --- energy ---
-  const eLo = interactions * whLo / 1000, eMid = interactions * whMid / 1000, eHi = interactions * whHi / 1000;
+  const eLo = interactions * whLo / 1000 + knownKwh, eMid = interactions * whMid / 1000 + knownKwh, eHi = interactions * whHi / 1000 + knownKwh;
 
   // --- carbon ---
   const cLo = eLo * N($('gridLo'), F.gridLo), cMid = eMid * N($('gridMid'), F.gridMid), cHi = eHi * N($('gridHi'), F.gridHi);
@@ -696,7 +819,8 @@ function calc() {
   // --- render ---
   $('oInteractions').textContent = nf(interactions);
   $('oBlend').textContent = 'Blended ' + nf(whMid, 2) + ' Wh per interaction across the task mix — ' +
-    (whMid / (sMid || 1)).toFixed(1) + '× a short text query.';
+    (whMid / (sMid || 1)).toFixed(1) + '\u00D7 a short text query.' +
+    (knownKwh > 0 ? ' Plus ' + nf(knownKwh, knownKwh < 10 ? 2 : 0) + ' kWh from known applications entered above.' : '');
 
   $('oEnergy').innerHTML = energyF(eMid);
   $('oEnergyRange').textContent = energyT(eLo) + ' – ' + energyT(eHi);
@@ -732,9 +856,26 @@ function applyScenario(name) {
   calc();
 }
 
+function knownAppsLogLines() {
+  const rows = Array.from(document.querySelectorAll('#knownRows .knownRow'));
+  if (rows.length === 0 || rows.every(r => !Number(r.querySelector('.kr-count').value))) {
+    return ['  None entered.'];
+  }
+  return rows.filter(r => Number(r.querySelector('.kr-count').value) > 0).map(r => {
+    const name = r.querySelector('.kr-name').value || '(unnamed application)';
+    const count = r.querySelector('.kr-count').value;
+    const typeKey = r.querySelector('.kr-type').value;
+    const typeLabel = KNOWN_TYPES.find(t => t.key === typeKey).label;
+    return '  ' + name + ': ' + Number(count).toLocaleString('en-GB') + ' queries/year at ' + typeLabel + ' [measured]';
+  });
+}
+
 function assumptionsLog() {
   const g = id => $(id).value;
   return [
+    'KNOWN APPLICATIONS [measured, entered directly]',
+    ...knownAppsLogLines(),
+    '',
     'GENERATIVE AI ENVIRONMENTAL IMPACT — ASSUMPTIONS LOG',
     'Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
     '',
@@ -825,6 +966,7 @@ $('btnLog').addEventListener('click', async () => {
   setTimeout(() => { btn.textContent = 'Copy the assumptions log'; }, 2400);
 });
 
+addKnownRow({ name: '', count: '', type: 'short' });
 $('builtOn').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 calc();
 })();
