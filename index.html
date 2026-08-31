@@ -122,8 +122,8 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
 .krRemove{background:transparent;border:1px solid var(--rule);color:var(--ink-3);font-size:.8rem;
   padding:8px 10px;cursor:pointer;font-family:var(--sans);height:38px}
 .krRemove:hover{border-color:var(--tier-a);color:var(--tier-a)}
-.krResult{font-family:var(--mono);font-size:.82rem;color:var(--keel);margin-top:9px;padding-top:9px;
-  border-top:1px solid var(--rule-soft)}
+.krResult{font-family:var(--mono);font-size:.82rem;color:var(--ink-3);margin-top:9px;padding-top:9px;
+  border-top:1px solid var(--rule-soft);line-height:1.6}
 .knownAdd{font-family:var(--sans);font-weight:600;font-size:.9rem;padding:9px 14px;
   border:1px dashed var(--rule);background:transparent;color:var(--keel);cursor:pointer;width:100%}
 .knownAdd:hover{border-color:var(--keel);background:var(--keel-soft)}
@@ -193,6 +193,13 @@ details.adv[open] summary{margin-bottom:16px}
 .equiv .eq-basis{font-size:.83rem;color:var(--ink-3);margin:4px 0 0;line-height:1.45}
 .equiv .eq-caveat{font-size:.87rem;color:var(--ink-2);background:#f6f9f9;border-left:3px solid var(--keel);padding:12px 14px;margin:16px 0 0;line-height:1.5}
 
+
+.proportionReadout{background:var(--keel-soft);border:1px solid var(--keel);padding:14px 16px;margin-top:16px}
+.prLine{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:6px 0}
+.prLine + .prLine{border-top:1px solid rgba(18,69,75,.15)}
+.prLabel{font-size:.88rem;color:var(--ink-2)}
+.prValue{font-family:var(--mono);font-size:1.1rem;font-weight:600;color:var(--keel);white-space:nowrap}
+
 /* ---------- sources ---------- */
 .sources{margin-top:34px;border-top:2px solid var(--ink);padding-top:20px}
 .sources h2{font-family:var(--sans);font-size:1.25rem;margin:0 0 14px}
@@ -254,7 +261,7 @@ details.adv[open] summary{margin-bottom:16px}
 
 <section class="known">
   <h2><span class="num">00</span> Known applications <span class="tag m">Measured</span></h2>
-  <p class="blurb">If a supplier or an internal system already tells you exactly how many queries an AI application handled — as many chatbot and assistant platforms do — enter it directly here rather than estimating it. These figures are added on top of the scenario estimate in section 05, and are excluded from the scenario model below so nothing is double-counted.</p>
+  <p class="blurb">If a supplier or an internal system already tells you exactly how many queries an AI application handled — as many chatbot and assistant platforms do — enter it directly here rather than estimating it. Each row shows its electricity, carbon and water on its own, using the conversion factors set in section 04 below. These figures are added on top of the scenario estimate in section 05, and are excluded from the scenario model below so nothing is double-counted.</p>
 
   <div class="knownRows" id="knownRows"></div>
 
@@ -472,6 +479,17 @@ details.adv[open] summary{margin-bottom:16px}
     </div>
   </div>
 
+  <div class="proportionReadout" id="proportionReadout">
+    <div class="prLine">
+      <span class="prLabel">AI electricity as a share of institutional electricity</span>
+      <span class="prValue" id="prShareE">Enter both figures above</span>
+    </div>
+    <div class="prLine">
+      <span class="prLabel">AI water as a share of institutional water</span>
+      <span class="prValue" id="prShareW">Enter both figures above</span>
+    </div>
+  </div>
+
   <div class="notice warn">
     <strong>Read the small result carefully.</strong> This model will almost certainly tell you that AI inference is a negligible share of your footprint. That is a true statement about <em>inference within this boundary</em>, and not a finding that AI is environmentally insignificant. Excluded from the boundary: training the models, manufacturing the hardware, constructing and operating the wider data-centre estate, and the electricity your users' own laptops draw. Embedded supply-chain water alone exceeds 99% of the corporate water footprint at one major operator. Do not let this tool be quoted as an all-in figure.
   </div>
@@ -537,7 +555,7 @@ details.adv[open] summary{margin-bottom:16px}
     </div>
 
     <div class="notice">
-      <strong>Suggested wording for a committee paper.</strong> “Illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Adoption rates are drawn from published survey evidence; interaction frequency and licence share are planning assumptions and are the dominant source of uncertainty.”
+      <strong>Please note.</strong> This is illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Adoption rates are drawn from published survey evidence; interaction frequency and licence share are planning assumptions and are the dominant source of uncertainty.
     </div>
   </div>
 </div>
@@ -729,6 +747,9 @@ function addKnownRow(prefill) {
 
 function knownApplicationsKwh() {
   let totalKwh = 0;
+  const grid = N($('gridMid'), F.gridMid);
+  const wue = N($('wueMid'), F.wueMid);
+  const ind = N($('indMid'), F.indMid);
   document.querySelectorAll('#knownRows .knownRow').forEach(row => {
     const count = Number(row.querySelector('.kr-count').value) || 0;
     const typeKey = row.querySelector('.kr-type').value;
@@ -739,9 +760,19 @@ function knownApplicationsKwh() {
     const kwh = count * wh / 1000;
     totalKwh += kwh;
     const resultEl = row.querySelector('.krResult');
-    resultEl.textContent = count > 0
-      ? nf(count) + ' queries \u00D7 ' + wh.toFixed(2) + ' Wh = ' + (kwh >= 1 ? nf(kwh, 2) + ' kWh a year' : nf(kwh * 1000, 0) + ' Wh a year')
-      : '';
+    if (count > 0) {
+      const carbonKg = kwh * grid;
+      const waterL = kwh * (wue + ind);
+      const kwhText = kwh >= 1 ? nf(kwh, 2) + ' kWh' : nf(kwh * 1000, 0) + ' Wh';
+      const carbonText = carbonKg >= 1 ? nf(carbonKg, 2) + ' kgCO\u2082e' : nf(carbonKg * 1000, 0) + ' gCO\u2082e';
+      const waterText = waterL >= 1000 ? nf(waterL / 1000, 2) + ' m\u00B3' : nf(waterL, 1) + ' L';
+      resultEl.innerHTML = nf(count) + ' queries \u00D7 ' + wh.toFixed(2) + ' Wh/query a year<br>'
+        + '<span style="color:var(--ink)">' + kwhText + '</span> electricity \u00B7 '
+        + '<span style="color:var(--ink)">' + carbonText + '</span> carbon \u00B7 '
+        + '<span style="color:var(--ink)">' + waterText + '</span> water';
+    } else {
+      resultEl.textContent = '';
+    }
   });
   $('knownTotalKwh').textContent = totalKwh >= 1000 ? nf(totalKwh / 1000, 2) + ' MWh' : nf(totalKwh, 2) + ' kWh';
   return totalKwh;
@@ -767,6 +798,8 @@ function emptyState() {
   ['mEnergy','mCarbon','mWater'].forEach(id => { $(id).style.left = '-9px'; });
   ['oShareE','oShareW','oPer'].forEach(id => { $(id).textContent = '—'; });
   $('equivList').innerHTML = '<li><p class="eq-text" style="color:var(--ink-3)">Comparisons appear once you enter a headcount.</p></li>';
+  $('prShareE').textContent = 'Enter both figures above';
+  $('prShareW').textContent = 'Enter both figures above';
   LAST = null;
 }
 
@@ -842,6 +875,20 @@ function calc() {
   const headcount = (stuHead ?? 0) + (staHead ?? 0);
   $('oShareE').textContent = ik ? (100 * eMid / ik).toFixed(3) + '%' : 'add total';
   $('oShareW').textContent = iw ? (100 * (wMid / 1000) / iw).toFixed(3) + '%' : 'add total';
+
+  const prE = $('prShareE'), prW = $('prShareW');
+  if (ik) {
+    const pct = 100 * eMid / ik;
+    prE.textContent = (pct < 0.001 ? '<0.001' : nf(pct, 3)) + '% \u2014 ' + energyT(eMid) + ' of ' + energyT(ik);
+  } else {
+    prE.textContent = 'Enter institutional electricity above';
+  }
+  if (iw) {
+    const pctW = 100 * (wMid / 1000) / iw;
+    prW.textContent = (pctW < 0.001 ? '<0.001' : nf(pctW, 3)) + '% \u2014 ' + waterT(wMid) + ' of ' + nf(iw, 0) + ' m\u00B3';
+  } else {
+    prW.textContent = 'Enter institutional water above';
+  }
   $('oPer').textContent = headcount > 0 ? nf(1000 * eMid / headcount, 0) + ' Wh' : '—';
 
   renderEquivalences(eMid, cMid, wMid, N($('gridMid'), F.gridMid));
