@@ -745,13 +745,17 @@ function addKnownRow(prefill) {
   return row;
 }
 
+let knownQueryCount = 0;
+
 function knownApplicationsKwh() {
   let totalKwh = 0;
+  let totalQueries = 0;
   const grid = N($('gridMid'), F.gridMid);
   const wue = N($('wueMid'), F.wueMid);
   const ind = N($('indMid'), F.indMid);
   document.querySelectorAll('#knownRows .knownRow').forEach(row => {
     const count = Number(row.querySelector('.kr-count').value) || 0;
+    totalQueries += count;
     const typeKey = row.querySelector('.kr-type').value;
     const type = KNOWN_TYPES.find(t => t.key === typeKey);
     const wh = type.key === 'custom'
@@ -775,6 +779,7 @@ function knownApplicationsKwh() {
     }
   });
   $('knownTotalKwh').textContent = totalKwh >= 1000 ? nf(totalKwh / 1000, 2) + ' MWh' : nf(totalKwh, 2) + ' kWh';
+  knownQueryCount = totalQueries;
   return totalKwh;
 }
 
@@ -850,10 +855,21 @@ function calc() {
   const wLo = dLo + iLo, wMid = dMid + iMid, wHi = dHi + iHi;
 
   // --- render ---
-  $('oInteractions').textContent = nf(interactions);
-  $('oBlend').textContent = 'Blended ' + nf(whMid, 2) + ' Wh per interaction across the task mix — ' +
-    (whMid / (sMid || 1)).toFixed(1) + '\u00D7 a short text query.' +
-    (knownKwh > 0 ? ' Plus ' + nf(knownKwh, knownKwh < 10 ? 2 : 0) + ' kWh from known applications entered above.' : '');
+  const totalInteractions = interactions + knownQueryCount;
+  $('oInteractions').textContent = nf(totalInteractions);
+
+  let blendNote;
+  if (interactions > 0 && knownQueryCount > 0) {
+    blendNote = nf(interactions) + ' from the scenario model (blended ' + nf(whMid, 2) + ' Wh per interaction, '
+      + (whMid / (sMid || 1)).toFixed(1) + '\u00D7 a short text query) plus ' + nf(knownQueryCount)
+      + ' from known applications entered above.';
+  } else if (knownQueryCount > 0) {
+    blendNote = 'All ' + nf(knownQueryCount) + ' interactions are from known applications entered above — no scenario estimate is included because section 01 is empty.';
+  } else {
+    blendNote = 'Blended ' + nf(whMid, 2) + ' Wh per interaction across the task mix — '
+      + (whMid / (sMid || 1)).toFixed(1) + '\u00D7 a short text query.';
+  }
+  $('oBlend').textContent = blendNote;
 
   $('oEnergy').innerHTML = energyF(eMid);
   $('oEnergyRange').textContent = energyT(eLo) + ' – ' + energyT(eHi);
