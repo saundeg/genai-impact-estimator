@@ -232,6 +232,18 @@ details.adv[open] summary{margin-bottom:16px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .spread i,.spread b{transition:all .18s ease}
+
+/* --- added in v3: exclusions panel (F3) and energy contribution breakdown (B6) --- */
+.exclusions{margin-top:18px;padding:13px 15px;border:1px solid var(--rule);border-left:3px solid var(--ink-2);border-radius:3px}
+.exclusions p{margin:0;font-size:.78rem;line-height:1.55;color:var(--ink-2)}
+.contrib{list-style:none;margin:8px 0 4px;padding:0}
+.contrib li{display:grid;grid-template-columns:104px 1fr 42px;align-items:center;gap:8px;margin-bottom:7px;font-size:.75rem;color:var(--ink-3)}
+.contrib li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contrib li i{display:block;height:7px;background:var(--ink-3);border-radius:2px;min-width:2px}
+.contrib li b{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.contrib li small{grid-column:1/-1;margin-top:-5px;font-size:.67rem;color:var(--ink-3);opacity:.85}
+.share{flex-wrap:wrap}
+.share span{flex:1 1 44%}
 </style>
 </head>
 <body>
@@ -300,18 +312,30 @@ details.adv[open] summary{margin-bottom:16px}
     <div class="row r3">
       <div class="field">
         <label>Use GenAI at all (%) <span class="tag p">Published</span></label>
-        <input id="stuAdopt" type="number" min="0" max="100" value="95">
-        <p class="hint">HEPI 2026: 95% of UK undergraduates report using AI in at least one way.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="stuAdoptLo" type="number" min="0" max="100" value="90"></div>
+          <div><label>Central</label><input id="stuAdopt" type="number" min="0" max="100" value="95"></div>
+          <div><label>High</label><input id="stuAdoptHi" type="number" min="0" max="100" value="95"></div>
+        </div>
+        <p class="hint">HEPI 2026: 95% of UK undergraduates report using AI in at least one way. Note that this is an <em>ever-used</em> measure. Multiplying it by a weekly frequency treats every occasional user as a weekly user, which overstates the total. Use the low bound if you want to approximate weekly-active students instead.</p>
       </div>
       <div class="field">
         <label>Of those, share using <em>your</em> licence (%) <span class="tag a">Assumption</span></label>
-        <input id="stuInst" type="number" min="0" max="100" value="45">
-        <p class="hint">The single biggest uncertainty in this model. HEPI cannot tell paid institutional ChatGPT from free personal accounts.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="stuInstLo" type="number" min="0" max="100" value="15"></div>
+          <div><label>Central</label><input id="stuInst" type="number" min="0" max="100" value="45"></div>
+          <div><label>High</label><input id="stuInstHi" type="number" min="0" max="100" value="80"></div>
+        </div>
+        <p class="hint">The single biggest uncertainty in this model. HEPI cannot tell paid institutional ChatGPT from free personal accounts. The bounds are the values used by the Cautious and Intensive scenario presets, so they are not new inventions.</p>
       </div>
       <div class="field">
-        <label>Interactions per active student/week <span class="tag a">Assumption</span></label>
-        <input id="stuWeekly" type="number" min="0" value="12">
-        <p class="hint">No published UK figure exists for prompt frequency.</p>
+        <label><em>Mean</em> interactions per active student/week <span class="tag a">Assumption</span></label>
+        <div class="trip">
+          <div><label>Low</label><input id="stuWeeklyLo" type="number" min="0" value="4"></div>
+          <div><label>Central</label><input id="stuWeekly" type="number" min="0" value="12"></div>
+          <div><label>High</label><input id="stuWeeklyHi" type="number" min="0" value="30"></div>
+        </div>
+        <p class="hint">No published UK figure exists for prompt frequency. Enter the <em>mean</em> across all licensed users, not the typical user: a minority of heavy users pulls the mean well above the median, so an intuitively typical value will understate the total.</p>
       </div>
     </div>
   </fieldset>
@@ -321,18 +345,30 @@ details.adv[open] summary{margin-bottom:16px}
     <div class="row r3">
       <div class="field">
         <label>Use GenAI at all (%) <span class="tag a">Assumption</span></label>
-        <input id="staAdopt" type="number" min="0" max="100" value="78">
-        <p class="hint">Weak evidence. US working-age adoption for work was 36–45% in 2024–25; information and technology sectors reached 56–76%.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="staAdoptLo" type="number" min="0" max="100" value="45"></div>
+          <div><label>Central</label><input id="staAdopt" type="number" min="0" max="100" value="78"></div>
+          <div><label>High</label><input id="staAdoptHi" type="number" min="0" max="100" value="85"></div>
+        </div>
+        <p class="hint">Weak evidence. US working-age adoption for work was 36–45% in 2024–25; information and technology sectors reached 56–76%. The low bound reflects the general working-age figure rather than the technology-sector one.</p>
       </div>
       <div class="field">
         <label>Of those, share using <em>your</em> licence (%) <span class="tag a">Assumption</span></label>
-        <input id="staInst" type="number" min="0" max="100" value="60">
-        <p class="hint">Usually higher than students: staff have institutional accounts and data-handling rules.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="staInstLo" type="number" min="0" max="100" value="35"></div>
+          <div><label>Central</label><input id="staInst" type="number" min="0" max="100" value="60"></div>
+          <div><label>High</label><input id="staInstHi" type="number" min="0" max="100" value="80"></div>
+        </div>
+        <p class="hint">Usually higher than students: staff have institutional accounts and data-handling rules. Bounds taken from the scenario presets.</p>
       </div>
       <div class="field">
-        <label>Interactions per active staff/week <span class="tag a">Assumption</span></label>
-        <input id="staWeekly" type="number" min="0" value="20">
-        <p class="hint">Adjust upward if Copilot or coding assistants are widely deployed.</p>
+        <label><em>Mean</em> interactions per active staff/week <span class="tag a">Assumption</span></label>
+        <div class="trip">
+          <div><label>Low</label><input id="staWeeklyLo" type="number" min="0" value="5"></div>
+          <div><label>Central</label><input id="staWeekly" type="number" min="0" value="20"></div>
+          <div><label>High</label><input id="staWeeklyHi" type="number" min="0" value="45"></div>
+        </div>
+        <p class="hint">Adjust upward if Copilot or coding assistants are widely deployed. Enter the mean, not the typical user — see the note on skew under students.</p>
       </div>
     </div>
   </fieldset>
@@ -388,25 +424,25 @@ details.adv[open] summary{margin-bottom:16px}
     <div class="row r2" style="margin-top:14px">
       <div class="factor">
         <h3>Image generation <span class="tag p">Published</span></h3>
-        <p class="src">Luccioni, Jernite and Strubell (ACM FAccT, 2024) measured <strong>2.907 Wh per image</strong> across 88 models. A 2025 study of a lighter model at 512&times;512 measured about 0.3 Wh, roughly ten times less — the gap is driven by parameter count, resolution and denoising steps. The central value here takes the higher, better-evidenced figure.</p>
+        <p class="src">Luccioni, Jernite and Strubell (ACM FAccT, 2024) measured <strong>2.907 Wh per image</strong> across 88 models. A 2025 study of a lighter model at 512&times;512 measured about 0.3 Wh, roughly ten times less — the gap is driven by parameter count, resolution and denoising steps. The central value takes the higher, better-evidenced figure; the high bound carries the same order-of-magnitude spread upward, since the FAccT study reports the largest models well above the mean.</p>
         <div class="trip">
           <div><label>Low</label><input id="imgLo" type="number" step="0.1" min="0" value="0.3"></div>
           <div><label>Central</label><input id="imgMid" type="number" step="0.1" min="0" value="2.9"></div>
-          <div><label>High</label><input id="imgHi" type="number" step="0.1" min="0" value="2.9"></div>
+          <div><label>High</label><input id="imgHi" type="number" step="0.1" min="0" value="11"></div>
         </div>
       </div>
       <div class="factor">
         <h3>Video generation <span class="tag p">Published</span></h3>
-        <p class="src">Measurements on CogVideoX found a five-second clip required about 3.4 megajoules of GPU energy, or roughly <strong>944 Wh</strong> — around seven hundred times a high-quality image. This is a single measurement with no published spread, so all three fields carry the same value. Scale it up for longer clips.</p>
+        <p class="src">Measurements on CogVideoX found a five-second clip required about 3.4 megajoules of GPU energy, or roughly <strong>944 Wh</strong> — around seven hundred times a high-quality image. This is a <em>single unreplicated laboratory measurement</em> on one open model. The bounds are deliberately wide — half to three times the central value — to reflect that, rather than the zero-width range a single study would otherwise imply. They are not published bounds. Scale up for longer clips.</p>
         <div class="trip">
-          <div><label>Low</label><input id="vidLo" type="number" step="1" min="0" value="944"></div>
+          <div><label>Low</label><input id="vidLo" type="number" step="1" min="0" value="472"></div>
           <div><label>Central</label><input id="vidMid" type="number" step="1" min="0" value="944"></div>
-          <div><label>High</label><input id="vidHi" type="number" step="1" min="0" value="944"></div>
+          <div><label>High</label><input id="vidHi" type="number" step="1" min="0" value="2832"></div>
         </div>
       </div>
     </div>
     <p class="hint" style="margin-top:11px">Image and video figures are laboratory measurements on open models, not metered production figures from the services your institution licenses, so they are less directly comparable than the text figures above.</p>
-    <p class="hint" style="margin-top:11px">Uncertainty ranges are recomputed from these fields and from the task mix. If you override a central value, the range moves with it — the reported range will always bracket the reported central estimate.</p>
+    <p class="hint" style="margin-top:11px">Uncertainty ranges are recomputed from these fields, from the task mix, and — new in this version — from the low and high bounds on licence share and interaction frequency in section 02. Those two were previously excluded from the range despite being the dominant unknowns, which made the reported band far narrower than the stated order-of-magnitude accuracy. The band is now an envelope with every assumption at its bound simultaneously, so it is wide by construction and the true value sits well inside it.</p>
   </details>
 </section>
 
@@ -419,7 +455,7 @@ details.adv[open] summary{margin-bottom:16px}
     <div class="row r2">
       <div class="factor">
         <h3>Grid emissions factor, kgCO₂e/kWh <span class="tag p">Published</span></h3>
-        <p class="src">DESNZ 2026 UK electricity generation factor: 0.13096, down from 0.17700 in 2025. This is the <em>location-based</em> factor — the average carbon content of grid electricity. Add transmission and distribution losses if your reporting framework requires them.</p>
+        <p class="src">DESNZ 2026 UK electricity generation factor: 0.13096, down from 0.17700 in 2025. This is the <em>location-based</em> factor — the average carbon content of grid electricity. Transmission and distribution losses are now a separate field alongside this one, and are added to it.</p>
         <div class="trip">
           <div><label>Low</label><input id="gridLo" type="number" step="0.001" min="0" value="0.10000"></div>
           <div><label>Central</label><input id="gridMid" type="number" step="0.00001" min="0" value="0.13096"></div>
@@ -427,13 +463,28 @@ details.adv[open] summary{margin-bottom:16px}
         </div>
       </div>
       <div class="factor">
-        <h3>Supplier market-based cross-check, gCO₂e/prompt <span class="tag m">Measured</span></h3>
-        <p class="src">Google reports 0.03 gCO₂e for the median Gemini text prompt — 0.023 g Scope 2 market-based plus 0.010 g Scope 1 and 3. Market-based accounting credits the supplier's renewable energy purchases, so it reads far lower than the location-based figure. Applies to standard text prompts only.</p>
+        <h3>Market-based emissions factor, kgCO₂e/kWh <span class="tag p">Derived</span></h3>
+        <p class="src">Derived from Google's own paired disclosure for the median Gemini text prompt: 0.03 gCO₂e over 0.24 Wh, which is 0.03 ÷ 0.00024 = <strong>125 gCO₂e/kWh, or 0.125 kgCO₂e/kWh</strong>. Market-based accounting credits the supplier's renewable energy purchases. Note what this derivation shows: on the supplier's own paired numbers the market-based factor lands very close to the DESNZ location-based factor of 0.13096, so per unit of electricity the two accounting bases are not far apart. Bounds carry the 0.01–0.05 gCO₂e per-prompt spread through the same derivation.</p>
         <div class="trip">
-          <div><label>Low</label><input id="mbLo" type="number" step="0.001" min="0" value="0.01"></div>
-          <div><label>Central</label><input id="mbMid" type="number" step="0.001" min="0" value="0.03"></div>
-          <div><label>High</label><input id="mbHi" type="number" step="0.001" min="0" value="0.05"></div>
+          <div><label>Low</label><input id="gridMbLo" type="number" step="0.001" min="0" value="0.042"></div>
+          <div><label>Central</label><input id="gridMbMid" type="number" step="0.001" min="0" value="0.125"></div>
+          <div><label>High</label><input id="gridMbHi" type="number" step="0.001" min="0" value="0.208"></div>
         </div>
+      </div>
+    </div>
+    <div class="row r2" style="margin-top:14px">
+      <div class="factor">
+        <h3>Transmission and distribution losses, kgCO₂e/kWh <span class="tag a">Verify before reporting</span></h3>
+        <p class="src">DESNZ publishes transmission and distribution losses as a factor separate from generation, and SECR reporting normally requires both. The default here is in the region of the recent UK figure, but <strong>confirm the exact current-year value from the DESNZ conversion factor table before any output goes into a report</strong>. Set to zero if your framework requires generation only.</p>
+        <div class="trip">
+          <div><label>Low</label><input id="tdLo" type="number" step="0.0001" min="0" value="0.0150"></div>
+          <div><label>Central</label><input id="tdMid" type="number" step="0.0001" min="0" value="0.0188"></div>
+          <div><label>High</label><input id="tdHi" type="number" step="0.0001" min="0" value="0.0250"></div>
+        </div>
+      </div>
+      <div class="factor">
+        <h3>Facility overhead (PUE) <span class="tag a">Not applied</span></h3>
+        <p class="src">Power Usage Effectiveness is deliberately <em>not</em> applied in this version. The per-query figures are not on a common basis: Google describes its 0.24 Wh as comprehensive, including host, idle capacity and data-centre overhead, while the boundary of the Oviedo et al. figures is not stated clearly enough to establish whether overhead is already included. Applying a multiplier to a figure that already contains it would inflate the result twice. This is a known downward bias in the current output, and it stays open until the source boundaries are confirmed.</p>
       </div>
     </div>
   </fieldset>
@@ -502,7 +553,7 @@ details.adv[open] summary{margin-bottom:16px}
   <div class="sticky">
     <div class="results">
       <h2>Indicative annual impact</h2>
-      <p class="sub">Central estimate with plausible range. Rounded; treat as order-of-magnitude.</p>
+      <p class="sub">Central estimate with an arithmetic envelope. The envelope now includes licence share and interaction frequency, the two dominant unknowns, which were previously excluded from it. It is produced by setting every assumption to its bound at the same time, so it is a widest-case span rather than a confidence interval &mdash; the true value will sit well inside it. Treat all figures as order-of-magnitude.</p>
 
       <div class="metric">
         <p class="m-label">Interactions</p>
@@ -533,14 +584,30 @@ details.adv[open] summary{margin-bottom:16px}
         <p class="m-note" id="oWaterSplit"></p>
       </div>
 
+      <div class="notice warn" id="dupWarn" style="display:none">
+        <strong>Possible double-count.</strong> <span id="dupWarnText"></span>
+      </div>
+
+      <div class="metric" id="mixBreakdown" style="display:none">
+        <p class="m-label">Where the energy comes from</p>
+        <ul class="contrib" id="contribList"></ul>
+        <p class="m-note">Excluded from the agentic figure: retrieval and search infrastructure, safety and moderation passes, retries and cancelled generations, and reasoning tokens you never see. Agentic energy is also modelled as a multiple of a long-reasoning query, which is characterised by <em>output</em> length; real agentic calls carry very large input contexts that this does not represent.</p>
+      </div>
+
       <div class="share">
+        <span>Per person/year<br><b id="oPer">—</b></span>
+        <span>Carbon per person/year<br><b id="oPerCarbon">—</b></span>
         <span>Of institutional electricity<br><b id="oShareE">—</b></span>
         <span>Of institutional water<br><b id="oShareW">—</b></span>
-        <span>Per person/year<br><b id="oPer">—</b></span>
+      </div>
+
+      <div class="exclusions">
+        <p><strong>What this figure excludes.</strong> Inference only. It does not include training the models, manufacturing the hardware, building and running the wider data-centre estate, or the electricity your users&rsquo; own devices draw. These are not small: embedded supply-chain water alone exceeds 99% of the corporate water footprint at one major operator. A small number here is a statement about a narrow boundary, not a finding that AI is environmentally insignificant. Quote this sentence with the figure.</p>
       </div>
 
       <div class="actions">
         <button class="act" type="button" id="btnLog">Copy the assumptions log</button>
+        <button class="act" type="button" id="btnShare">Copy a link to this run</button>
         <button class="act" type="button" id="btnPrint">Print or save as PDF</button>
         <button class="act" type="button" id="btnReset">Reset to central</button>
       </div>
@@ -555,7 +622,7 @@ details.adv[open] summary{margin-bottom:16px}
     </div>
 
     <div class="notice">
-      <strong>Please note.</strong> This is illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Adoption rates are drawn from published survey evidence; interaction frequency and licence share are planning assumptions and are the dominant source of uncertainty.
+      <strong>Please note.</strong> This is illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Interaction frequency and licence share are planning assumptions and remain the dominant source of uncertainty. Two known biases remain and are not corrected here. Downward: facility overhead is not applied, and all compute is costed at the UK grid factor although inference for UK tenants is served substantially from Ireland, the Netherlands and the United States, where grid carbon is materially higher. Upward: adoption is an ever-use measure multiplied by a weekly frequency, which counts occasional users as weekly ones. Ask your suppliers which regions serve your tenant, and for tenant-level query volumes — that would improve this estimate more than any further refinement of the model.
     </div>
   </div>
 </div>
@@ -595,23 +662,28 @@ const NB = el => {
 
 const F = {
   stuN:'', staN:'', stuWk:42, staWk:46,
-  stuAdopt:95, stuInst:45, stuWeekly:12,
-  staAdopt:78, staInst:60, staWeekly:20,
+  stuAdoptLo:90, stuAdopt:95, stuAdoptHi:95,
+  stuInstLo:15, stuInst:45, stuInstHi:80,
+  stuWeeklyLo:4, stuWeekly:12, stuWeeklyHi:30,
+  staAdoptLo:45, staAdopt:78, staAdoptHi:85,
+  staInstLo:35, staInst:60, staInstHi:80,
+  staWeeklyLo:5, staWeekly:20, staWeeklyHi:45,
   mixShort:70, mixLong:20, mixAgent:8, mixImage:2, mixVideo:0,
   agentCalls:8,
-  imgLo:0.3, imgMid:2.9, imgHi:2.9,
-  vidLo:944, vidMid:944, vidHi:944,
+  imgLo:0.3, imgMid:2.9, imgHi:11,
+  vidLo:472, vidMid:944, vidHi:2832,
   shortLo:0.16, shortMid:0.31, shortHi:0.60,
   longLo:2.15, longMid:3.91, longHi:7.05,
   gridLo:0.10, gridMid:0.13096, gridHi:0.19553,
-  mbLo:0.01, mbMid:0.03, mbHi:0.05,
+  gridMbLo:0.042, gridMbMid:0.125, gridMbHi:0.208,
+  tdLo:0.0150, tdMid:0.0188, tdHi:0.0250,
   wueLo:0.12, wueMid:0.36, wueHi:1.10,
   indLo:1.8, indMid:1.8, indHi:7.6,
   instKwh:'', instWater:''
 };
 
 const SCEN = {
-  low:  { stuInst:15, stuWeekly:4,  staAdopt:70, staInst:35, staWeekly:5,
+  low:  { stuInst:15, stuWeekly:4,  staAdopt:70, staInst:35, staWeekly:5, stuAdopt:90,
           mixShort:90, mixLong:8,  mixAgent:2,  mixImage:0,   mixVideo:0,   agentCalls:5,  stuWk:40, staWk:44 },
   med:  { stuInst:45, stuWeekly:12, staAdopt:78, staInst:60, staWeekly:20,
           mixShort:70, mixLong:20, mixAgent:8,  mixImage:2,   mixVideo:0,   agentCalls:8,  stuWk:42, staWk:46 },
@@ -620,6 +692,14 @@ const SCEN = {
 };
 
 const nf = (n, d = 0) => n.toLocaleString('en-GB', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+// One significant figure. The glossary claims order-of-magnitude accuracy; showing
+// three decimal places contradicts it. Review finding F4.
+const sig1 = n => {
+  if (!Number.isFinite(n) || n === 0) return '0';
+  const mag = Math.floor(Math.log10(Math.abs(n)));
+  const r = Math.round(n / Math.pow(10, mag)) * Math.pow(10, mag);
+  return r.toLocaleString('en-GB', { maximumFractionDigits: Math.max(0, -mag + 1) });
+};
 const energyF = k => k >= 1000 ? nf(k / 1000, 2) + '<small>MWh</small>' : nf(k, 0) + '<small>kWh</small>';
 const energyT = k => k >= 1000 ? nf(k / 1000, 2) + ' MWh' : nf(k, 0) + ' kWh';
 const carbonF = kg => kg >= 1000 ? nf(kg / 1000, 2) + '<small>tCO₂e</small>' : nf(kg, 0) + '<small>kgCO₂e</small>';
@@ -636,7 +716,8 @@ const EQ = {
   waterLpd: 140,        // litres per person per day, England & Wales average
   carKgMile: 0.2736,    // average petrol car, kgCO2e/mile (0.17 kgCO2e/km)
   poolL: 2500000,       // Olympic pool, 2,500 m3
-  bathL: 80             // a filled bath
+  bathL: 80,            // a filled bath
+  homeGrid: 0.13096     // DESNZ 2026 generation factor, held fixed on purpose
 };
 
 function renderEquivalences(eMid, cMid, wMid, gridFactor) {
@@ -662,7 +743,7 @@ function renderEquivalences(eMid, cMid, wMid, gridFactor) {
     text: 'About the same as driving ' + b(nf(miles, miles < 100 ? 0 : 0)) + ' miles in an average petrol car, or the electricity emissions of '
       + (carbonHomes >= 1 ? b(nf(carbonHomes, carbonHomes < 10 ? 1 : 0)) + ' UK ' + (carbonHomes < 1.5 ? 'home' : 'homes') + ' for a year.'
                           : b(nf(100 * carbonHomes, 0) + '%') + ' of one UK home for a year.'),
-    basis: 'Average petrol car = 0.17 kgCO₂e per km. Home electricity emissions derived from the grid factor set above, so this moves if you change it.'
+    basis: 'Average petrol car = 0.17 kgCO₂e per km. Home electricity emissions derived from the grid factor set above, held fixed so this comparison does not move when you edit the fields above.'
   });
 
   // --- water ---
@@ -787,6 +868,70 @@ $('addKnown').addEventListener('click', () => { addKnownRow(); calc(); });
 
 let LAST = null;
 
+// --- audit trail (review item 14) -------------------------------------------
+// A figure published in a sustainability report gets challenged a year later, by
+// which time the defaults here will have moved. Without a version stamp and a
+// complete input record, that figure cannot be reconstructed or defended.
+const CONSTANTS_VERSION = 'v3.0';
+const SOURCE_VINTAGE = [
+  'Energy per query: Oviedo et al., Joule 2026',
+  'Image and video energy: Luccioni, Jernite and Strubell, ACM FAccT 2024',
+  'Grid emissions factor: DESNZ 2026',
+  'Transmission and distribution: DESNZ 2026 (verify current year)',
+  'Market-based factor: derived from Google Cloud, 21 August 2025',
+  'Water: Microsoft FY2025, LBNL 2024, Li et al. CACM',
+  'Adoption: HEPI Report 199, December 2025 fieldwork',
+  'Household benchmark: Ofgem TDCV, revised 1 July 2026'
+];
+
+function allInputIds() {
+  return Array.from(document.querySelectorAll('input[type=number]'))
+    .map(el => el.id).filter(Boolean).sort();
+}
+
+function serialiseState() {
+  const state = {};
+  allInputIds().forEach(id => { state[id] = $(id).value; });
+  state.__known = Array.from(document.querySelectorAll('#knownRows .knownRow')).map(r => ({
+    n: r.querySelector('.kr-name').value,
+    c: r.querySelector('.kr-count').value,
+    t: r.querySelector('.kr-type').value,
+    w: r.querySelector('.kr-custom') ? r.querySelector('.kr-custom').value : ''
+  }));
+  return state;
+}
+
+function runHash(state) {
+  const s = CONSTANTS_VERSION + '|' + JSON.stringify(state);
+  let a = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { a ^= s.charCodeAt(i); a = Math.imul(a, 0x01000193) >>> 0; }
+  return a.toString(16).padStart(8, '0');
+}
+
+function stateToUrl() {
+  const json = JSON.stringify(serialiseState());
+  const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return location.origin + location.pathname + '#s=' + b64;
+}
+
+function restoreFromUrl() {
+  const m = location.hash.match(/[#&]s=([A-Za-z0-9\-_]+)/);
+  if (!m) return false;
+  try {
+    const b64 = m[1].replace(/-/g, '+').replace(/_/g, '/');
+    const state = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    Object.keys(state).forEach(k => { if (k !== '__known' && $(k)) $(k).value = state[k]; });
+    if (Array.isArray(state.__known)) {
+      $('knownRows').innerHTML = '';
+      state.__known.forEach(k => {
+        const row = addKnownRow({ name: k.n, count: k.c, type: k.t });
+        if (k.w && row.querySelector('.kr-custom')) row.querySelector('.kr-custom').value = k.w;
+      });
+    }
+    return true;
+  } catch (e) { return false; }
+}
+
 function bandFill(barEl, markEl, lo, mid, hi) {
   const span = hi > 0 ? hi : 1;
   barEl.style.left = (100 * lo / span) + '%';
@@ -801,7 +946,9 @@ function emptyState() {
   ['oEnergyRange','oCarbonRange','oCarbonMb','oWaterRange','oWaterSplit'].forEach(id => { $(id).textContent = ''; });
   ['sEnergy','sCarbon','sWater'].forEach(id => { $(id).style.width = '0%'; });
   ['mEnergy','mCarbon','mWater'].forEach(id => { $(id).style.left = '-9px'; });
-  ['oShareE','oShareW','oPer'].forEach(id => { $(id).textContent = '—'; });
+  ['oShareE','oShareW','oPer','oPerCarbon'].forEach(id => { $(id).textContent = '—'; });
+  $('dupWarn').style.display = 'none';
+  $('mixBreakdown').style.display = 'none';
   $('equivList').innerHTML = '<li><p class="eq-text" style="color:var(--ink-3)">Comparisons appear once you enter a headcount.</p></li>';
   $('prShareE').textContent = 'Enter both figures above';
   $('prShareW').textContent = 'Enter both figures above';
@@ -813,11 +960,20 @@ function calc() {
   const knownKwh = knownApplicationsKwh();
   const stuHead = NB($('stuN')), staHead = NB($('staN'));
   if (stuHead === null && staHead === null && knownKwh === 0) { emptyState(); return; }
-  const stuActive = (stuHead ?? 0) * (N($('stuAdopt'), F.stuAdopt) / 100) * (N($('stuInst'), F.stuInst) / 100);
-  const staActive = (staHead ?? 0) * (N($('staAdopt'), F.staAdopt) / 100) * (N($('staInst'), F.staInst) / 100);
-  const stuInt = stuActive * N($('stuWeekly'), F.stuWeekly) * N($('stuWk'), F.stuWk);
-  const staInt = staActive * N($('staWeekly'), F.staWeekly) * N($('staWk'), F.staWk);
-  const interactions = stuInt + staInt;
+  const stuWk = N($('stuWk'), F.stuWk), staWk = N($('staWk'), F.staWk);
+  // Interactions are now computed at three bounds, because licence share and
+  // weekly frequency are the dominant unknowns and were previously excluded
+  // from the reported range entirely. Review finding B1.
+  const inter = (sfx) => {
+    const g = (id) => N($(id + sfx), F[id + sfx] ?? F[id]);
+    const s = (stuHead ?? 0) * (g('stuAdopt') / 100) * (g('stuInst') / 100) * g('stuWeekly') * stuWk;
+    const t = (staHead ?? 0) * (g('staAdopt') / 100) * (g('staInst') / 100) * g('staWeekly') * staWk;
+    return { stu: s, sta: t, total: s + t };
+  };
+  const iMidObj = inter(''), iLoObj = inter('Lo'), iHiObj = inter('Hi');
+  const stuInt = iMidObj.stu, staInt = iMidObj.sta;
+  const interactions = iMidObj.total;
+  const interLo = Math.min(iLoObj.total, iHiObj.total), interHi = Math.max(iLoObj.total, iHiObj.total);
 
   // --- task mix, normalised ---
   let ms = N($('mixShort'), F.mixShort), ml = N($('mixLong'), F.mixLong),
@@ -826,7 +982,10 @@ function calc() {
   const sum = ms + ml + ma + mi + mv;
   const warn = $('mixwarn');
   if (Math.abs(sum - 100) > 0.5) {
-    warn.textContent = 'Task shares total ' + nf(sum, 1) + '%, not 100%. Results below are normalised to 100% so they stay valid, but adjust the shares to remove the ambiguity.';
+    const entered = [ms, ml, ma, mi, mv].map(v => nf(v, 1)).join(' / ');
+    const modelled = [ms, ml, ma, mi, mv].map(v => nf(100 * v / (sum || 1), 1)).join(' / ');
+    warn.textContent = 'Task shares total ' + nf(sum, 1) + '%, not 100%. Every share has been rescaled, including ones you did not change. '
+      + 'You entered ' + entered + '. The model used ' + modelled + '. Adjust the shares to remove the ambiguity.';
     warn.classList.add('on');
   } else { warn.classList.remove('on'); }
   const d = sum > 0 ? sum : 1;
@@ -843,11 +1002,24 @@ function calc() {
   const whLo = blend(sLo, lLo, iLo_, vLo_), whMid = blend(sMid, lMid, iMid_, vMid_), whHi = blend(sHi, lHi, iHi_, vHi_);
 
   // --- energy ---
-  const eLo = interactions * whLo / 1000 + knownKwh, eMid = interactions * whMid / 1000 + knownKwh, eHi = interactions * whHi / 1000 + knownKwh;
+  const eLo = interLo * whLo / 1000 + knownKwh, eMid = interactions * whMid / 1000 + knownKwh, eHi = interHi * whHi / 1000 + knownKwh;
 
   // --- carbon ---
-  const cLo = eLo * N($('gridLo'), F.gridLo), cMid = eMid * N($('gridMid'), F.gridMid), cHi = eHi * N($('gridHi'), F.gridHi);
-  const mbMid = interactions * N($('mbMid'), F.mbMid) / 1000; // g -> kg
+  // Location-based carbon now includes transmission and distribution losses.
+  const cLo = eLo * (N($('gridLo'), F.gridLo) + N($('tdLo'), F.tdLo));
+  const cMid = eMid * (N($('gridMid'), F.gridMid) + N($('tdMid'), F.tdMid));
+  const cHi = eHi * (N($('gridHi'), F.gridHi) + N($('tdHi'), F.tdHi));
+  // Review finding D1. Market-based carbon was previously interactions x 0.03 g,
+  // a flat per-prompt rate with no energy term and no task-mix term, so a scenario
+  // of pure video returned the same figure as one of pure short text. It is now
+  // derived from kWh on exactly the same basis as the location-based figure, and
+  // it includes known-application energy, which it previously excluded.
+  const mbLoV = eLo * N($('gridMbLo'), F.gridMbLo);
+  const mbMid = eMid * N($('gridMbMid'), F.gridMbMid);
+  const mbHiV = eHi * N($('gridMbHi'), F.gridMbHi);
+  // Retained per-prompt sanity check, valid for short text only.
+  const nonTextShare = 1 - ms;
+  const promptCheck = interactions * 0.03 / 1000;
 
   // --- water ---
   const dLo = eLo * N($('wueLo'), F.wueLo), dMid = eMid * N($('wueMid'), F.wueMid), dHi = eHi * N($('wueHi'), F.wueHi);
@@ -872,13 +1044,17 @@ function calc() {
   $('oBlend').textContent = blendNote;
 
   $('oEnergy').innerHTML = energyF(eMid);
-  $('oEnergyRange').textContent = energyT(eLo) + ' – ' + energyT(eHi);
+  $('oEnergyRange').textContent = 'Envelope ' + energyT(eLo) + ' – ' + energyT(eHi) + ' (all assumptions at their bounds together)';
   bandFill($('sEnergy'), $('mEnergy'), eLo, eMid, eHi);
 
   $('oCarbon').innerHTML = carbonF(cMid);
   $('oCarbonRange').textContent = carbonT(cLo) + ' – ' + carbonT(cHi);
-  $('oCarbonMb').textContent = 'Market-based cross-check on the same volume: ' + carbonT(mbMid) +
-    '. The gap between the two is an accounting choice about renewable energy purchases, not a modelling error.';
+  let mbText = 'Market-based: ' + carbonT(mbMid) + ' (' + carbonT(mbLoV) + ' \u2013 ' + carbonT(mbHiV)
+    + '). Both figures are derived from the same electricity using different emissions factors. The difference reflects the supplier\'s renewable energy purchases; both are reportable, under different framework requirements.';
+  mbText += nonTextShare <= 0.10
+    ? ' Supplier per-prompt cross-check: ' + carbonT(promptCheck) + '.'
+    : ' Supplier per-prompt cross-check hidden \u2014 it applies to standard text prompts only, and this scenario is ' + nf(100 * nonTextShare, 0) + '% non-text.';
+  $('oCarbonMb').textContent = mbText;
   bandFill($('sCarbon'), $('mCarbon'), cLo, cMid, cHi);
 
   $('oWater').innerHTML = waterF(wMid);
@@ -889,27 +1065,64 @@ function calc() {
 
   const ik = NB($('instKwh')), iw = NB($('instWater'));
   const headcount = (stuHead ?? 0) + (staHead ?? 0);
-  $('oShareE').textContent = ik ? (100 * eMid / ik).toFixed(3) + '%' : 'add total';
-  $('oShareW').textContent = iw ? (100 * (wMid / 1000) / iw).toFixed(3) + '%' : 'add total';
+  $('oShareE').textContent = ik ? sig1(100 * eMid / ik) + '%' : 'add total';
+  $('oShareW').textContent = iw ? sig1(100 * (wMid / 1000) / iw) + '%' : 'add total';
 
   const prE = $('prShareE'), prW = $('prShareW');
   if (ik) {
     const pct = 100 * eMid / ik;
-    prE.textContent = (pct < 0.001 ? '<0.001' : nf(pct, 3)) + '% \u2014 ' + energyT(eMid) + ' of ' + energyT(ik);
+    prE.textContent = sig1(100 * eMid / ik) + '% \u2014 ' + energyT(eMid) + ' of ' + energyT(ik) + '. Not like for like: a Scope 3 purchased service measured against Scope 1 and 2 own-estate consumption.';
   } else {
     prE.textContent = 'Enter institutional electricity above';
   }
   if (iw) {
     const pctW = 100 * (wMid / 1000) / iw;
-    prW.textContent = (pctW < 0.001 ? '<0.001' : nf(pctW, 3)) + '% \u2014 ' + waterT(wMid) + ' of ' + nf(iw, 0) + ' m\u00B3';
+    prW.textContent = sig1(100 * (wMid / 1000) / iw) + '% \u2014 ' + waterT(wMid) + ' of ' + nf(iw, 0) + ' m\u00B3. Same boundary mismatch as above.';
   } else {
     prW.textContent = 'Enter institutional water above';
   }
   $('oPer').textContent = headcount > 0 ? nf(1000 * eMid / headcount, 0) + ' Wh' : '—';
+  $('oPerCarbon').textContent = headcount > 0 ? nf(1000 * cMid / headcount, 0) + ' g' : '—';
 
-  renderEquivalences(eMid, cMid, wMid, N($('gridMid'), F.gridMid));
+  // Fixed published factor, deliberately decoupled from the editable grid field so
+  // that editing an unrelated input cannot silently reframe the analogy. Finding B3.
+  renderEquivalences(eMid, cMid, wMid, EQ.homeGrid);
 
-  LAST = { interactions, stuInt, staInt, whMid, eMid, eLo, eHi, cMid, mbMid, wMid, dMid, iMid, headcount };
+  // Review finding D2. Known-application energy is added to the scenario total and
+  // nothing is deducted from the headcount model, so if the same people appear in
+  // both they are counted twice. A population deduction is the wrong remedy — the
+  // same person uses several tools — so this warns rather than silently adjusting.
+  const dupW = $('dupWarn');
+  if (knownQueryCount > 0 && interactions > 0) {
+    $('dupWarnText').textContent = 'You have entered both a headcount estimate and '
+      + nf(knownQueryCount) + ' measured queries. Measured queries are added on top of the scenario estimate; '
+      + 'nothing is deducted. If the people using your measured applications are also inside the headcount in section 01, '
+      + 'their use is counted twice. Here the measured share is ' + sig1(100 * knownQueryCount / totalInteractions)
+      + '% of all interactions, so the overlap is at most that. Reduce the licence share in section 02 if it matters at your scale.';
+    dupW.style.display = '';
+  } else { dupW.style.display = 'none'; }
+
+  // Review finding B6. The agentic category dominates the blend while resting on an
+  // assumed multiplier, so the contribution of each category is now shown live.
+  const contrib = [
+    { name: 'Short text', wh: ms * sMid, share: ms },
+    { name: 'Long reasoning', wh: ml * lMid, share: ml },
+    { name: 'Agentic', wh: ma * (lMid * calls), share: ma },
+    { name: 'Image', wh: mi * iMid_, share: mi },
+    { name: 'Video', wh: mv * vMid_, share: mv }
+  ].filter(c => c.share > 0).sort((a, b) => b.wh - a.wh);
+  const bd = $('mixBreakdown');
+  if (contrib.length && whMid > 0) {
+    $('contribList').innerHTML = contrib.map(c => {
+      const pct = 100 * c.wh / whMid;
+      return '<li><span>' + c.name + '</span><i style="width:' + Math.max(1, pct).toFixed(1) + '%"></i>'
+        + '<b>' + nf(pct, 0) + '%</b><small>' + nf(100 * c.share, 1) + '% of queries</small></li>';
+    }).join('');
+    bd.style.display = '';
+  } else { bd.style.display = 'none'; }
+
+  LAST = { interactions, interLo, interHi, stuInt, staInt, whMid, eMid, eLo, eHi, cMid, cLo, cHi,
+           mbMid, mbLoV, mbHiV, wMid, dMid, iMid, headcount, contrib };
 }
 
 function applyScenario(name) {
@@ -940,25 +1153,34 @@ function assumptionsLog() {
     ...knownAppsLogLines(),
     '',
     'GENERATIVE AI ENVIRONMENTAL IMPACT — ASSUMPTIONS LOG',
+    'Constants version ' + CONSTANTS_VERSION + '   Run ' + runHash(serialiseState()),
     'Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
     '',
-    'BOUNDARY',
+    'BOUNDARY — quote this with any figure taken from this log',
     'Inference only, for generative AI provided under institutional licence.',
     'Excludes model training, hardware manufacture, data-centre construction, end-user devices.',
+    'A small result reflects this narrow boundary. It is not evidence that AI is',
+    'environmentally insignificant.',
+    '',
+    'REPRODUCE THIS RUN',
+    '  ' + stateToUrl(),
     '',
     'POPULATION [your data]',
     '  Students ' + g('stuN') + ' · Staff ' + g('staN'),
     '  Active weeks: students ' + g('stuWk') + ', staff ' + g('staWk') + ' [assumption]',
     '',
     'UTILISATION',
-    '  Students using GenAI at all: ' + g('stuAdopt') + '% [published: HEPI 2026, 95%]',
-    '  Of those, via institutional licence: ' + g('stuInst') + '% [assumption — dominant uncertainty]',
-    '  Interactions per active student per week: ' + g('stuWeekly') + ' [assumption]',
-    '  Staff using GenAI at all: ' + g('staAdopt') + '% [assumption, weak evidence]',
-    '  Of those, via institutional licence: ' + g('staInst') + '% [assumption]',
-    '  Interactions per active staff member per week: ' + g('staWeekly') + ' [assumption]',
+    '  Students using GenAI at all: ' + g('stuAdoptLo') + ' / ' + g('stuAdopt') + ' / ' + g('stuAdoptHi') + '% [published: HEPI 2026 ever-use, 95%]',
+    '  Of those, via institutional licence: ' + g('stuInstLo') + ' / ' + g('stuInst') + ' / ' + g('stuInstHi') + '% [assumption — dominant uncertainty]',
+    '  Mean interactions per active student per week: ' + g('stuWeeklyLo') + ' / ' + g('stuWeekly') + ' / ' + g('stuWeeklyHi') + ' [assumption]',
+    '  Staff using GenAI at all: ' + g('staAdoptLo') + ' / ' + g('staAdopt') + ' / ' + g('staAdoptHi') + '% [assumption, weak evidence]',
+    '  Of those, via institutional licence: ' + g('staInstLo') + ' / ' + g('staInst') + ' / ' + g('staInstHi') + '% [assumption]',
+    '  Mean interactions per active staff member per week: ' + g('staWeeklyLo') + ' / ' + g('staWeekly') + ' / ' + g('staWeeklyHi') + ' [assumption]',
     '  Resulting interactions: ' + nf(LAST.interactions) +
       ' (students ' + nf(LAST.stuInt) + ', staff ' + nf(LAST.staInt) + ')',
+    '  Interaction range across the utilisation bounds: ' + nf(LAST.interLo) + ' – ' + nf(LAST.interHi),
+    '  NOTE: adoption is an ever-use measure multiplied by a weekly frequency, which',
+    '  treats occasional users as weekly users and biases the total upward.',
     '',
     'TASK MIX [mix shares are assumptions; energy factors are published]',
     '  Short text ' + g('mixShort') + '% at ' + g('shortMid') + ' Wh (range ' + g('shortLo') + '–' + g('shortHi') + ')',
@@ -970,14 +1192,19 @@ function assumptionsLog() {
     '',
     'CONVERSION FACTORS',
     '  Grid emissions (location-based): ' + g('gridMid') + ' kgCO2e/kWh [DESNZ 2026]',
-    '  Market-based cross-check: ' + g('mbMid') + ' gCO2e/prompt [Google, measured]',
+    '  Transmission and distribution: ' + g('tdMid') + ' kgCO2e/kWh [DESNZ — verify current year]',
+    '  Market-based factor: ' + g('gridMbMid') + ' kgCO2e/kWh [derived from Google 0.03 gCO2e / 0.24 Wh]',
+    '  Facility overhead (PUE): not applied — source boundaries not established. Downward bias.',
     '  Direct cooling water (WUE): ' + g('wueMid') + ' L/kWh [supplier-measured range 0.12–1.10]',
     '  Indirect water from generation: ' + g('indMid') + ' L/kWh [published range 1.8–7.6]',
     '',
     'RESULTS (central estimate)',
     '  Electricity: ' + energyT(LAST.eMid) + '   range ' + energyT(LAST.eLo) + ' – ' + energyT(LAST.eHi),
-    '  Carbon, location-based: ' + carbonT(LAST.cMid),
-    '  Carbon, market-based cross-check: ' + carbonT(LAST.mbMid),
+    '  Carbon, location-based: ' + carbonT(LAST.cMid) + '   range ' + carbonT(LAST.cLo) + ' – ' + carbonT(LAST.cHi),
+    '  Carbon, market-based: ' + carbonT(LAST.mbMid) + '   range ' + carbonT(LAST.mbLoV) + ' – ' + carbonT(LAST.mbHiV),
+    '  Energy contribution by task category:',
+    ...LAST.contrib.map(c => '    ' + c.name + ': ' + nf(100 * c.wh / LAST.whMid, 0) + '% of blended energy from '
+      + nf(100 * c.share, 1) + '% of queries'),
     '  Water total: ' + waterT(LAST.wMid) + '  (direct ' + waterT(LAST.dMid) + ', upstream ' + waterT(LAST.iMid) + ')',
     '',
     'CAVEAT',
@@ -992,7 +1219,13 @@ function assumptionsLog() {
     '  Microsoft Cloud, Scaling AI with 8 to 20x energy efficiency, 15 Jun 2026',
     '  HEPI Report 199, Student Generative AI Survey 2026',
     '  DESNZ, Greenhouse gas reporting conversion factors 2026',
-    '  Li/Ren et al., Making AI Less Thirsty, CACM; LBNL 2024 US Data Center Energy Usage Report'
+    '  Li/Ren et al., Making AI Less Thirsty, CACM; LBNL 2024 US Data Center Energy Usage Report',
+    '',
+    'SOURCE VINTAGE',
+    ...SOURCE_VINTAGE.map(s => '  ' + s),
+    '',
+    'FULL INPUT STATE',
+    '  ' + JSON.stringify(serialiseState())
   ].join('\n');
 }
 
@@ -1002,10 +1235,20 @@ document.querySelectorAll('.scen').forEach(b => b.addEventListener('click', () =
 
 $('btnReset').addEventListener('click', () => {
   Object.keys(F).forEach(k => { if ($(k)) $(k).value = F[k]; });
+  history.replaceState(null, '', location.pathname);
   applyScenario('med');
 });
 
 $('btnPrint').addEventListener('click', () => window.print());
+
+$('btnShare').addEventListener('click', async () => {
+  const btn = $('btnShare');
+  const url = stateToUrl();
+  history.replaceState(null, '', '#s=' + url.split('#s=')[1]);
+  try { await navigator.clipboard.writeText(url); btn.textContent = 'Link copied \u2014 run ' + runHash(serialiseState()); }
+  catch { btn.textContent = 'Copy failed'; }
+  setTimeout(() => { btn.textContent = 'Copy a link to this run'; }, 3000);
+});
 
 $('btnLog').addEventListener('click', async () => {
   const btn = $('btnLog');
@@ -1014,7 +1257,7 @@ $('btnLog').addEventListener('click', async () => {
     setTimeout(() => { btn.textContent = 'Copy the assumptions log'; }, 2400);
     return;
   }
-  const text = assumptionsLog();
+  const text = assumptionsLog();  // begins with the boundary statement — finding F3
   try {
     await navigator.clipboard.writeText(text);
     btn.textContent = 'Copied to clipboard';
@@ -1029,7 +1272,11 @@ $('btnLog').addEventListener('click', async () => {
   setTimeout(() => { btn.textContent = 'Copy the assumptions log'; }, 2400);
 });
 
-addKnownRow({ name: '', count: '', type: 'short' });
+// Exposed for the regression checks below; harmless in normal use.
+window.__audit = { assumptionsLog, serialiseState, runHash, stateToUrl, CONSTANTS_VERSION };
+
+const restored = restoreFromUrl();
+if (!restored) addKnownRow({ name: '', count: '', type: 'short' });
 $('builtOn').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 calc();
 })();
