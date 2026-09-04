@@ -87,7 +87,14 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
 .r4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .r5{grid-template-columns:repeat(5,minmax(0,1fr))}
 
-.field label{display:block;font-family:var(--sans);font-weight:600;font-size:1.03rem;line-height:1.25;margin-bottom:5px}
+.field{display:flex;flex-direction:column}
+/* Labels wrap to different numbers of lines depending on their length and whether
+   an evidence tag fits alongside, which previously left inputs in a row sitting at
+   different heights. Letting the label absorb the slack keeps every input on the
+   same baseline. */
+.field label{display:block;font-family:var(--sans);font-weight:600;font-size:1.03rem;line-height:1.25;margin-bottom:5px;flex:1 0 auto}
+.field .trip{flex:0 0 auto}
+.field .hint{flex:0 0 auto}
 .field input{width:100%;font-family:var(--mono);font-size:17px;padding:10px 11px;
   border:1px solid var(--rule);border-radius:0;background:#fbfcfc;color:var(--ink)}
 .field input:focus{outline:2px solid var(--keel);outline-offset:1px;background:#fff}
