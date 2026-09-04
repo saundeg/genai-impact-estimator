@@ -93,6 +93,10 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
    different heights. Letting the label absorb the slack keeps every input on the
    same baseline. */
 .field label{display:block;font-family:var(--sans);font-weight:600;font-size:1.03rem;line-height:1.25;margin-bottom:5px;flex:1 0 auto}
+/* The evidence tag sat inline after short labels like "Staff" and wrapped below
+   longer ones, so tags in the same row landed on different lines. Giving the tag
+   its own line everywhere makes the label block a consistent two lines. */
+.field > label .tag{display:block;width:fit-content;margin-top:5px}
 .field .trip{flex:0 0 auto}
 .field .hint{flex:0 0 auto}
 .field input{width:100%;font-family:var(--mono);font-size:17px;padding:10px 11px;
