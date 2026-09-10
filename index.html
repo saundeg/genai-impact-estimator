@@ -657,7 +657,7 @@ details.adv[open] summary{margin-bottom:16px}
     </div>
 
     <div class="notice">
-      <strong>Please note.</strong> This is illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Interaction frequency and licence share are planning assumptions and remain the dominant source of uncertainty. Two known biases remain and are not corrected here. Downward: facility overhead is not applied, and all compute is costed at the UK grid factor although inference for UK tenants is served substantially from Ireland, the Netherlands and the United States, where grid carbon is materially higher. Upward: adoption is an ever-use measure multiplied by a weekly frequency, which counts occasional users as weekly ones. Ask your suppliers which regions serve your tenant, and for tenant-level query volumes — that would improve this estimate more than any further refinement of the model.
+      <strong>Please note.</strong> This is illustrative scenario modelling of institutionally licensed generative AI inference, pending supplier usage data. Interaction frequency and licence share are planning assumptions and remain the dominant source of uncertainty. Two known biases remain and are not corrected here. Downward: all compute is costed at the UK grid factor, although inference for UK tenants is served substantially from Ireland, the Netherlands and the United States, where grid carbon is materially higher. Upward: adoption is an ever-use measure multiplied by a weekly frequency, which counts occasional users as weekly ones. Facility overhead is not a bias — it is already inside both energy sources, so no multiplier is applied and none is needed. Ask your suppliers which regions serve your tenant, and for tenant-level query volumes — that would improve this estimate more than any further refinement of the model.
     </div>
   </div>
 </div>
@@ -998,6 +998,10 @@ function emptyState() {
   ['oShareE','oShareW','oPer','oPerCarbon'].forEach(id => { $(id).textContent = '—'; });
   $('dupWarn').style.display = 'none';
   $('mixBreakdown').style.display = 'none';
+  // calc() returns through here before reaching the table render, so the table
+  // must be hidden from this path too or it shows a bare header row on load.
+  if ($('scenTable')) $('scenTable').style.display = 'none';
+  if ($('scenBody')) $('scenBody').innerHTML = '';
   $('equivList').innerHTML = '<li><p class="eq-text" style="color:var(--ink-3)">Comparisons appear once you enter a headcount.</p></li>';
   $('prShareE').textContent = 'Enter both figures above';
   $('prShareW').textContent = 'Enter both figures above';
@@ -1233,8 +1237,14 @@ let IN_SCEN_TABLE = false;
 const SCEN_LABEL = { low: 'Cautious', med: 'Central', high: 'Intensive' };
 
 function renderScenarioTable() {
-  const body = $('scenBody');
+  const body = $('scenBody'), tbl = $('scenTable');
   if (!body) return;
+  if (!NB($('stuN')) && !NB($('staN')) && knownApplicationsKwh() === 0) {
+    body.innerHTML = '';
+    if (tbl) tbl.style.display = 'none';
+    return;
+  }
+  if (tbl) tbl.style.display = '';
   const saved = {};
   document.querySelectorAll('input[type=number]').forEach(el => { saved[el.id] = el.value; });
 
