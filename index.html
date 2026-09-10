@@ -244,6 +244,19 @@ details.adv[open] summary{margin-bottom:16px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .spread i,.spread b{transition:all .18s ease}
 
+/* --- added in v4: scenario comparison table, now the primary output --- */
+.scenTable{width:100%;border-collapse:collapse;margin:6px 0 8px;font-size:.82rem}
+.scenTable th,.scenTable td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);
+  font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.scenTable thead th{text-align:right;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);border-bottom-width:2px;font-weight:500}
+.scenTable tbody th{text-align:left;font-family:var(--sans);font-weight:600;color:var(--ink)}
+.scenTable tbody th span{font-family:var(--mono);font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:400;margin-left:6px}
+.scenTable tr.on th,.scenTable tr.on td{color:var(--ink);font-weight:600}
+.scenNote{font-size:.75rem;line-height:1.55;color:var(--ink-3);margin:0 0 20px}
+.scenNote strong{color:var(--ink-2)}
+
 /* --- added in v3: exclusions panel (F3) and energy contribution breakdown (B6) --- */
 .exclusions{margin-top:18px;padding:13px 15px;border:1px solid var(--rule);border-left:3px solid var(--ink-2);border-radius:3px}
 .exclusions p{margin:0;font-size:.78rem;line-height:1.55;color:var(--ink-2)}
@@ -284,7 +297,7 @@ details.adv[open] summary{margin-bottom:16px}
 
 <section class="known">
   <h2><span class="num">00</span> Known applications <span class="tag m">Measured</span></h2>
-  <p class="blurb">If a supplier or an internal system already tells you exactly how many queries an AI application handled — as many chatbot and assistant platforms do — enter it directly here rather than estimating it. Each row shows its electricity, carbon and water on its own, using the conversion factors set in section 04 below. These figures are added on top of the scenario estimate in section 05, and are excluded from the scenario model below so nothing is double-counted.</p>
+  <p class="blurb">If a supplier or an internal system already tells you exactly how many queries an AI application handled — as many chatbot and assistant platforms do — enter it directly here rather than estimating it. Each row shows its electricity, carbon and water on its own, using the conversion factors set in section 04 below. Each measured query is then <strong>subtracted from the modelled interaction count</strong> before the scenario estimate is calculated, because the weekly frequency in section 02 is defined as covering all of your licensed tools — so a measured query is already inside it. Versions 2 and 3 of this tool added measured energy on top without deducting anything, and counted those queries twice; the claim in the v2 and v3 notes that nothing was double-counted was not correct.</p>
 
   <div class="knownRows" id="knownRows"></div>
 
@@ -401,7 +414,11 @@ details.adv[open] summary{margin-bottom:16px}
   <div class="row r2" style="margin-top:14px">
     <div class="field">
       <label>Model calls per agentic task <span class="tag a">Assumption</span></label>
-      <input id="agentCalls" type="number" min="1" value="8">
+      <div class="trip">
+        <div><label>Low</label><input id="agentCallsLo" type="number" min="1" value="4"></div>
+        <div><label>Central</label><input id="agentCalls" type="number" min="1" value="8"></div>
+        <div><label>High</label><input id="agentCallsHi" type="number" min="1" value="16"></div>
+      </div>
       <p class="hint">One user action in a coding or research agent can fire many separate model calls. Energy per agentic task is this number multiplied by the long-reasoning figure.</p>
     </div>
     <div class="field">
@@ -434,7 +451,7 @@ details.adv[open] summary{margin-bottom:16px}
     </div>
     <div class="row r2" style="margin-top:14px">
       <div class="factor">
-        <h3>Image generation <span class="tag p">Published</span></h3>
+        <h3>Image generation <span class="tag p">Published</span> <span class="tag a">High bound constructed</span></h3>
         <p class="src">Luccioni, Jernite and Strubell (ACM FAccT, 2024) measured <strong>2.907 Wh per image</strong> across 88 models. A 2025 study of a lighter model at 512&times;512 measured about 0.3 Wh, roughly ten times less — the gap is driven by parameter count, resolution and denoising steps. The central value takes the higher, better-evidenced figure; the high bound carries the same order-of-magnitude spread upward, since the FAccT study reports the largest models well above the mean.</p>
         <div class="trip">
           <div><label>Low</label><input id="imgLo" type="number" step="0.1" min="0" value="0.3"></div>
@@ -443,7 +460,7 @@ details.adv[open] summary{margin-bottom:16px}
         </div>
       </div>
       <div class="factor">
-        <h3>Video generation <span class="tag p">Published</span></h3>
+        <h3>Video generation <span class="tag m">Central measured</span> <span class="tag a">Bounds constructed</span></h3>
         <p class="src">Measurements on CogVideoX found a five-second clip required about 3.4 megajoules of GPU energy, or roughly <strong>944 Wh</strong> — around seven hundred times a high-quality image. This is a <em>single unreplicated laboratory measurement</em> on one open model. The bounds are deliberately wide — half to three times the central value — to reflect that, rather than the zero-width range a single study would otherwise imply. They are not published bounds. Scale up for longer clips.</p>
         <div class="trip">
           <div><label>Low</label><input id="vidLo" type="number" step="1" min="0" value="472"></div>
@@ -475,27 +492,27 @@ details.adv[open] summary{margin-bottom:16px}
       </div>
       <div class="factor">
         <h3>Market-based emissions factor, kgCO₂e/kWh <span class="tag p">Derived</span></h3>
-        <p class="src">Derived from Google's own paired disclosure for the median Gemini text prompt: 0.03 gCO₂e over 0.24 Wh, which is 0.03 ÷ 0.00024 = <strong>125 gCO₂e/kWh, or 0.125 kgCO₂e/kWh</strong>. Market-based accounting credits the supplier's renewable energy purchases. Note what this derivation shows: on the supplier's own paired numbers the market-based factor lands very close to the DESNZ location-based factor of 0.13096, so per unit of electricity the two accounting bases are not far apart. Bounds carry the 0.01–0.05 gCO₂e per-prompt spread through the same derivation.</p>
+        <p class="src">Google’s 0.03 gCO₂e per median text prompt is <em>not</em> a single electricity figure. It is 0.023 g of Scope 2 market-based electricity plus 0.010 g of Scope 1 and 3, the latter being embodied hardware for the accelerators, host CPU and DRAM. Only the electricity component belongs in a factor that gets multiplied by kilowatt-hours: 0.023 g ÷ 0.00024 kWh = <strong>95.8 gCO₂e/kWh, or 0.0958 kgCO₂e/kWh</strong>. The embodied 0.010 g is deliberately not carried, because hardware manufacture is outside this tool’s stated boundary and embodied emissions do not scale with electricity in any case. Bounds carry the published per-prompt spread through the same derivation.</p>
         <div class="trip">
-          <div><label>Low</label><input id="gridMbLo" type="number" step="0.001" min="0" value="0.042"></div>
-          <div><label>Central</label><input id="gridMbMid" type="number" step="0.001" min="0" value="0.125"></div>
-          <div><label>High</label><input id="gridMbHi" type="number" step="0.001" min="0" value="0.208"></div>
+          <div><label>Low</label><input id="gridMbLo" type="number" step="0.0001" min="0" value="0.032"></div>
+          <div><label>Central</label><input id="gridMbMid" type="number" step="0.0001" min="0" value="0.0958"></div>
+          <div><label>High</label><input id="gridMbHi" type="number" step="0.0001" min="0" value="0.160"></div>
         </div>
       </div>
     </div>
     <div class="row r2" style="margin-top:14px">
       <div class="factor">
-        <h3>Transmission and distribution losses, kgCO₂e/kWh <span class="tag a">Verify before reporting</span></h3>
-        <p class="src">DESNZ publishes transmission and distribution losses as a factor separate from generation, and SECR reporting normally requires both. The default here is in the region of the recent UK figure, but <strong>confirm the exact current-year value from the DESNZ conversion factor table before any output goes into a report</strong>. Set to zero if your framework requires generation only.</p>
+        <h3>Transmission and distribution losses, kgCO₂e/kWh <span class="tag p">Published</span></h3>
+        <p class="src">DESNZ 2026 (published 11 June 2026) gives transmission and distribution losses as <strong>0.01299 kgCO₂e/kWh</strong>, down from 0.01853 in the 2025 set — a fall of about 30%, steeper than generation itself. Added to the 2026 generation factor of 0.13096 this gives <strong>0.14395 for electricity consumed including losses</strong>. Note that these losses belong in <strong>Scope 3 category 3</strong>, not Scope 2, so they are reported separately from the generation figure. Set to zero if your framework requires generation only. Bounds span the 2025 and 2026 published values, since which vintage applies depends on the reporting year.</p>
         <div class="trip">
-          <div><label>Low</label><input id="tdLo" type="number" step="0.0001" min="0" value="0.0150"></div>
-          <div><label>Central</label><input id="tdMid" type="number" step="0.0001" min="0" value="0.0188"></div>
-          <div><label>High</label><input id="tdHi" type="number" step="0.0001" min="0" value="0.0250"></div>
+          <div><label>Low</label><input id="tdLo" type="number" step="0.00001" min="0" value="0.01299"></div>
+          <div><label>Central</label><input id="tdMid" type="number" step="0.00001" min="0" value="0.01299"></div>
+          <div><label>High</label><input id="tdHi" type="number" step="0.00001" min="0" value="0.01853"></div>
         </div>
       </div>
       <div class="factor">
-        <h3>Facility overhead (PUE) <span class="tag a">Not applied</span></h3>
-        <p class="src">Power Usage Effectiveness is deliberately <em>not</em> applied in this version. The per-query figures are not on a common basis: Google describes its 0.24 Wh as comprehensive, including host, idle capacity and data-centre overhead, while the boundary of the Oviedo et al. figures is not stated clearly enough to establish whether overhead is already included. Applying a multiplier to a figure that already contains it would inflate the result twice. This is a known downward bias in the current output, and it stays open until the source boundaries are confirmed.</p>
+        <h3>Facility overhead (PUE) <span class="tag p">Already included</span></h3>
+        <p class="src">No overhead multiplier is applied, and none should be, because overhead is already inside both energy sources. Google decomposes its 0.24 Wh median text prompt as 0.14 Wh active accelerators, 0.06 Wh host CPU and DRAM, 0.02 Wh idle and reserved capacity, and 0.02 Wh data-centre overhead including PUE. Oviedo et al. state that their framework estimates inference energy from token throughput, node power and overhead under large-scale deployment assumptions. Applying a further multiplier would count overhead twice. This was recorded as an open question in v3; it is now closed against the primary sources.</p>
       </div>
     </div>
   </fieldset>
@@ -564,7 +581,14 @@ details.adv[open] summary{margin-bottom:16px}
   <div class="sticky">
     <div class="results">
       <h2>Indicative annual impact</h2>
-      <p class="sub">Central estimate with an arithmetic envelope. The envelope now includes licence share and interaction frequency, the two dominant unknowns, which were previously excluded from it. It is produced by setting every assumption to its bound at the same time, so it is a widest-case span rather than a confidence interval &mdash; the true value will sit well inside it. Treat all figures as order-of-magnitude.</p>
+      <p class="sub">Three coherent scenarios, each a set of assumptions that could actually hold together. The figures below the table are for the scenario currently selected in section 02. Treat all of them as order-of-magnitude.</p>
+
+      <table class="scenTable" id="scenTable">
+        <thead><tr><th>Scenario</th><th>Electricity</th><th>Carbon (location)</th><th>Water</th></tr></thead>
+        <tbody id="scenBody"></tbody>
+      </table>
+      <p class="scenNote">Each row is a self-consistent state of the world. The arithmetic envelope printed under each figure below sets every assumption to its bound at the same time, which is a corner of the parameter space with negligible plausibility — it is a sanity check on the model, not a confidence interval and not a probability statement. <strong>Quote a scenario, not the envelope.</strong></p>
+
 
       <div class="metric">
         <p class="m-label">Interactions</p>
@@ -680,14 +704,14 @@ const F = {
   staInstLo:35, staInst:60, staInstHi:80,
   staWeeklyLo:5, staWeekly:20, staWeeklyHi:45,
   mixShort:70, mixLong:20, mixAgent:8, mixImage:2, mixVideo:0,
-  agentCalls:8,
+  agentCallsLo:4, agentCalls:8, agentCallsHi:16,
   imgLo:0.3, imgMid:2.9, imgHi:11,
   vidLo:472, vidMid:944, vidHi:2832,
   shortLo:0.16, shortMid:0.31, shortHi:0.60,
   longLo:2.15, longMid:3.91, longHi:7.05,
   gridLo:0.10, gridMid:0.13096, gridHi:0.19553,
-  gridMbLo:0.042, gridMbMid:0.125, gridMbHi:0.208,
-  tdLo:0.0150, tdMid:0.0188, tdHi:0.0250,
+  gridMbLo:0.032, gridMbMid:0.0958, gridMbHi:0.160,
+  tdLo:0.01299, tdMid:0.01299, tdHi:0.01853,
   wueLo:0.12, wueMid:0.36, wueHi:1.10,
   indLo:1.8, indMid:1.8, indHi:7.6,
   instKwh:'', instWater:''
@@ -705,17 +729,31 @@ const SCEN = {
 const nf = (n, d = 0) => n.toLocaleString('en-GB', { maximumFractionDigits: d, minimumFractionDigits: 0 });
 // One significant figure. The glossary claims order-of-magnitude accuracy; showing
 // three decimal places contradicts it. Review finding F4.
-const sig1 = n => {
+const sigN = (n, s) => {
   if (!Number.isFinite(n) || n === 0) return '0';
   const mag = Math.floor(Math.log10(Math.abs(n)));
-  const r = Math.round(n / Math.pow(10, mag)) * Math.pow(10, mag);
-  return r.toLocaleString('en-GB', { maximumFractionDigits: Math.max(0, -mag + 1) });
+  const p = Math.pow(10, mag - s + 1);
+  const r = Math.round(n / p) * p;
+  return r.toLocaleString('en-GB', { maximumFractionDigits: Math.max(0, s - 1 - mag) });
 };
-const energyF = k => k >= 1000 ? nf(k / 1000, 2) + '<small>MWh</small>' : nf(k, 0) + '<small>kWh</small>';
+const sig1 = n => sigN(n, 1);
+// Headline quantities render at two significant figures, not one. Three implied a
+// precision the model does not have, which was the reviewer's point; but one is a
+// different distortion — it renders the location-based and market-based figures as
+// 3 and 2 tCO2e, implying a 1.5x gap where the real figure is about 1.3x. Two is
+// the coarsest presentation that does not itself mislead.
+const sig2 = n => sigN(n, 2);
+const energyF = k => k >= 1000 ? sig2(k / 1000) + '<small>MWh</small>' : sig2(k) + '<small>kWh</small>';
 const energyT = k => k >= 1000 ? nf(k / 1000, 2) + ' MWh' : nf(k, 0) + ' kWh';
-const carbonF = kg => kg >= 1000 ? nf(kg / 1000, 2) + '<small>tCO₂e</small>' : nf(kg, 0) + '<small>kgCO₂e</small>';
+const carbonF = kg => kg >= 1000 ? sig2(kg / 1000) + '<small>tCO₂e</small>' : sig2(kg) + '<small>kgCO₂e</small>';
 const carbonT = kg => kg >= 1000 ? nf(kg / 1000, 2) + ' tCO2e' : nf(kg, 0) + ' kgCO2e';
-const waterF = l => l >= 1000 ? nf(l / 1000, 1) + '<small>m³</small>' : nf(l, 0) + '<small>L</small>';
+// v4, review 6.2. sig1 reached percentages only in v3, so the headline — the number
+// a reader actually quotes — still carried three significant figures against a stated
+// order-of-magnitude accuracy. These render the primary outputs at one.
+const carbonS = kg => kg >= 1000 ? sig2(kg / 1000) + ' tCO2e' : sig2(kg) + ' kgCO2e';
+const energyS = kwh => kwh >= 1000 ? sig2(kwh / 1000) + ' MWh' : sig2(kwh) + ' kWh';
+const waterS = l => l >= 1000 ? sig2(l / 1000) + ' m\u00B3' : sig2(l) + ' L';
+const waterF = l => l >= 1000 ? sig2(l / 1000) + '<small>m³</small>' : sig2(l) + '<small>L</small>';
 const waterT = l => l >= 1000 ? nf(l / 1000, 1) + ' m3' : nf(l, 0) + ' L';
 
 
@@ -883,13 +921,13 @@ let LAST = null;
 // A figure published in a sustainability report gets challenged a year later, by
 // which time the defaults here will have moved. Without a version stamp and a
 // complete input record, that figure cannot be reconstructed or defended.
-const CONSTANTS_VERSION = 'v3.0';
+const CONSTANTS_VERSION = 'v4.0';
 const SOURCE_VINTAGE = [
   'Energy per query: Oviedo et al., Joule 2026',
   'Image and video energy: Luccioni, Jernite and Strubell, ACM FAccT 2024',
   'Grid emissions factor: DESNZ 2026',
-  'Transmission and distribution: DESNZ 2026 (verify current year)',
-  'Market-based factor: derived from Google Cloud, 21 August 2025',
+  'Transmission and distribution: DESNZ 2026, 0.01299 kgCO2e/kWh, Scope 3 cat 3',
+  'Market-based factor: Google Scope 2 electricity component only, 21 August 2025',
   'Water: Microsoft FY2025, LBNL 2024, Li et al. CACM',
   'Adoption: HEPI Report 199, December 2025 fieldwork',
   'Household benchmark: Ofgem TDCV, revised 1 July 2026'
@@ -966,11 +1004,14 @@ function emptyState() {
   LAST = null;
 }
 
-function calc() {
+// v4. The scenario table and the headline must never disagree, so the arithmetic
+// lives in one place and both read from it. compute() reads the inputs and returns
+// values; it renders nothing. calc() renders from what compute() returns.
+function compute() {
   // --- population and interactions ---
   const knownKwh = knownApplicationsKwh();
   const stuHead = NB($('stuN')), staHead = NB($('staN'));
-  if (stuHead === null && staHead === null && knownKwh === 0) { emptyState(); return; }
+  if (stuHead === null && staHead === null && knownKwh === 0) return null;
   const stuWk = N($('stuWk'), F.stuWk), staWk = N($('staWk'), F.staWk);
   // Interactions are now computed at three bounds, because licence share and
   // weekly frequency are the dominant unknowns and were previously excluded
@@ -983,8 +1024,7 @@ function calc() {
   };
   const iMidObj = inter(''), iLoObj = inter('Lo'), iHiObj = inter('Hi');
   const stuInt = iMidObj.stu, staInt = iMidObj.sta;
-  const interactions = iMidObj.total;
-  const interLo = Math.min(iLoObj.total, iHiObj.total), interHi = Math.max(iLoObj.total, iHiObj.total);
+  const modelledRaw = iMidObj.total;
 
   // --- task mix, normalised ---
   let ms = N($('mixShort'), F.mixShort), ml = N($('mixLong'), F.mixLong),
@@ -1004,15 +1044,32 @@ function calc() {
 
   // --- blended Wh per interaction at each bound ---
   const calls = Math.max(1, N($('agentCalls'), F.agentCalls));
+  // v4, review 5.2. Model calls per agentic task drives roughly 70% of the blended
+  // figure and had no bounds at all in v3, so the single largest driver of the
+  // central estimate sat outside the range whose purpose was to capture exactly that.
+  const callsLo = Math.max(1, N($('agentCallsLo'), F.agentCallsLo));
+  const callsHi = Math.max(1, N($('agentCallsHi'), F.agentCallsHi));
   const sLo = N($('shortLo'), F.shortLo), sMid = N($('shortMid'), F.shortMid), sHi = N($('shortHi'), F.shortHi);
   const lLo = N($('longLo'), F.longLo), lMid = N($('longMid'), F.longMid), lHi = N($('longHi'), F.longHi);
   const iLo_ = N($('imgLo'), F.imgLo), iMid_ = N($('imgMid'), F.imgMid), iHi_ = N($('imgHi'), F.imgHi);
   const vLo_ = N($('vidLo'), F.vidLo), vMid_ = N($('vidMid'), F.vidMid), vHi_ = N($('vidHi'), F.vidHi);
 
-  const blend = (s, l, im, vd) => ms * s + ml * l + ma * (l * calls) + mi * im + mv * vd;
-  const whLo = blend(sLo, lLo, iLo_, vLo_), whMid = blend(sMid, lMid, iMid_, vMid_), whHi = blend(sHi, lHi, iHi_, vHi_);
+  const blend = (s, l, im, vd, c) => ms * s + ml * l + ma * (l * c) + mi * im + mv * vd;
+  const whLo = blend(sLo, lLo, iLo_, vLo_, callsLo),
+        whMid = blend(sMid, lMid, iMid_, vMid_, calls),
+        whHi = blend(sHi, lHi, iHi_, vHi_, callsHi);
 
   // --- energy ---
+  // v4, review 2.1. The modelled weekly frequency covers interactions across all the
+  // institution's licensed tools, so a measured query count is by construction a subset
+  // of it. v3 added measured energy on top and deducted nothing, counting those queries
+  // twice. Deducting queries — not people — is the right form: netting a covered
+  // population would zero the model, since one person uses several tools. This is a
+  // no-op at small measured shares and self-correcting as telemetry arrives.
+  const interactions = Math.max(0, modelledRaw - knownQueryCount);
+  const interLo = Math.max(0, Math.min(iLoObj.total, iHiObj.total) - knownQueryCount);
+  const interHi = Math.max(0, Math.max(iLoObj.total, iHiObj.total) - knownQueryCount);
+
   const eLo = interLo * whLo / 1000 + knownKwh, eMid = interactions * whMid / 1000 + knownKwh, eHi = interHi * whHi / 1000 + knownKwh;
 
   // --- carbon ---
@@ -1025,9 +1082,13 @@ function calc() {
   // of pure video returned the same figure as one of pure short text. It is now
   // derived from kWh on exactly the same basis as the location-based figure, and
   // it includes known-application energy, which it previously excluded.
-  const mbLoV = eLo * N($('gridMbLo'), F.gridMbLo);
-  const mbMid = eMid * N($('gridMbMid'), F.gridMbMid);
-  const mbHiV = eHi * N($('gridMbHi'), F.gridMbHi);
+  // v4, review 4.2. Losses apply to both accounting bases, not just the location-based
+  // one: both source figures stop at the data-centre gate and SECR carries losses on
+  // both. v3 applied them to location only, putting the two figures on different
+  // boundaries while the on-screen text claimed they shared one.
+  const mbLoV = eLo * (N($('gridMbLo'), F.gridMbLo) + N($('tdLo'), F.tdLo));
+  const mbMid = eMid * (N($('gridMbMid'), F.gridMbMid) + N($('tdMid'), F.tdMid));
+  const mbHiV = eHi * (N($('gridMbHi'), F.gridMbHi) + N($('tdHi'), F.tdHi));
   // Retained per-prompt sanity check, valid for short text only.
   const nonTextShare = 1 - ms;
   const promptCheck = interactions * 0.03 / 1000;
@@ -1037,7 +1098,24 @@ function calc() {
   const iLo = eLo * N($('indLo'), F.indLo), iMid = eMid * N($('indMid'), F.indMid), iHi = eHi * N($('indHi'), F.indHi);
   const wLo = dLo + iLo, wMid = dMid + iMid, wHi = dHi + iHi;
 
+  return { knownKwh, stuHead, staHead, modelledRaw, interactions, interLo, interHi,
+           stuInt, staInt, ms, ml, ma, mi, mv, sum, calls, callsLo, callsHi,
+           sMid, lMid, iMid_, vMid_, whLo, whMid, whHi,
+           e: eMid, eLo, eHi, c: cMid, cLo, cHi, mbMid, mbLoV, mbHiV,
+           nonTextShare, promptCheck, w: wMid, wLo, wHi, dMid, iMid };
+}
+
+function calc() {
+  const R = compute();
+  if (!R) { emptyState(); return; }
+  const { knownKwh, stuHead, staHead, modelledRaw, interactions, interLo, interHi,
+          stuInt, staInt, ms, ml, ma, mi, mv, sum, calls, callsLo, callsHi,
+          sMid, lMid, iMid_, vMid_, whLo, whMid, whHi,
+          eLo, eHi, cLo, cHi, mbMid, mbLoV, mbHiV,
+          nonTextShare, promptCheck, wLo, wHi, dMid, iMid } = R;
+  const eMid = R.e, cMid = R.c, wMid = R.w;
   // --- render ---
+  if (!IN_SCEN_TABLE) { IN_SCEN_TABLE = true; try { renderScenarioTable(); } finally { IN_SCEN_TABLE = false; } }
   const totalInteractions = interactions + knownQueryCount;
   $('oInteractions').textContent = nf(totalInteractions);
 
@@ -1045,7 +1123,8 @@ function calc() {
   if (interactions > 0 && knownQueryCount > 0) {
     blendNote = nf(interactions) + ' from the scenario model (blended ' + nf(whMid, 2) + ' Wh per interaction, '
       + (whMid / (sMid || 1)).toFixed(1) + '\u00D7 a short text query) plus ' + nf(knownQueryCount)
-      + ' from known applications entered above.';
+      + ' measured. The modelled figure is net of the measured count \u2014 ' + nf(modelledRaw)
+      + ' modelled less ' + nf(knownQueryCount) + ' measured \u2014 so nothing is counted twice.';
   } else if (knownQueryCount > 0) {
     blendNote = 'All ' + nf(knownQueryCount) + ' interactions are from known applications entered above — no scenario estimate is included because section 01 is empty.';
   } else {
@@ -1055,16 +1134,16 @@ function calc() {
   $('oBlend').textContent = blendNote;
 
   $('oEnergy').innerHTML = energyF(eMid);
-  $('oEnergyRange').textContent = 'Envelope ' + energyT(eLo) + ' – ' + energyT(eHi) + ' (all assumptions at their bounds together)';
+  $('oEnergyRange').textContent = 'Arithmetic envelope ' + energyT(eLo) + ' – ' + energyT(eHi) + '. Not a confidence interval — quote a scenario instead.';
   bandFill($('sEnergy'), $('mEnergy'), eLo, eMid, eHi);
 
   $('oCarbon').innerHTML = carbonF(cMid);
   $('oCarbonRange').textContent = carbonT(cLo) + ' – ' + carbonT(cHi);
-  let mbText = 'Market-based: ' + carbonT(mbMid) + ' (' + carbonT(mbLoV) + ' \u2013 ' + carbonT(mbHiV)
-    + '). Both figures are derived from the same electricity using different emissions factors. The difference reflects the supplier\'s renewable energy purchases; both are reportable, under different framework requirements.';
+  let mbText = 'Market-based: ' + carbonS(mbMid) + ' (envelope ' + carbonT(mbLoV) + ' \u2013 ' + carbonT(mbHiV)
+    + '). Same electricity, same boundary, same transmission losses \u2014 only the emissions factor differs, and that difference is the supplier\'s renewable energy purchases. Both are reportable, under different framework requirements. The two sit about 1.3\u00D7 apart, against the 15\u00D7 that v2 displayed through a units error.';
   mbText += nonTextShare <= 0.10
     ? ' Supplier per-prompt cross-check: ' + carbonT(promptCheck) + '.'
-    : ' Supplier per-prompt cross-check hidden \u2014 it applies to standard text prompts only, and this scenario is ' + nf(100 * nonTextShare, 0) + '% non-text.';
+    : ' Supplier per-prompt cross-check hidden: it is published for standard text prompts only, and non-text work here is ' + nf(100 * nonTextShare, 0) + '%, above the 10% point at which a single text rate stops being a fair check on a blended figure.';
   $('oCarbonMb').textContent = mbText;
   bandFill($('sCarbon'), $('mCarbon'), cLo, cMid, cHi);
 
@@ -1092,8 +1171,8 @@ function calc() {
   } else {
     prW.textContent = 'Enter institutional water above';
   }
-  $('oPer').textContent = headcount > 0 ? nf(1000 * eMid / headcount, 0) + ' Wh' : '—';
-  $('oPerCarbon').textContent = headcount > 0 ? nf(1000 * cMid / headcount, 0) + ' g' : '—';
+  $('oPer').textContent = headcount > 0 ? sig2(1000 * eMid / headcount) + ' Wh' : '—';
+  $('oPerCarbon').textContent = headcount > 0 ? sig2(1000 * cMid / headcount) + ' g' : '—';
 
   // Fixed published factor, deliberately decoupled from the editable grid field so
   // that editing an unrelated input cannot silently reframe the analogy. Finding B3.
@@ -1118,7 +1197,7 @@ function calc() {
   const contrib = [
     { name: 'Short text', wh: ms * sMid, share: ms },
     { name: 'Long reasoning', wh: ml * lMid, share: ml },
-    { name: 'Agentic', wh: ma * (lMid * calls), share: ma },
+    { name: 'Agentic', wh: ma * (lMid * calls), share: ma },  // central bound
     { name: 'Image', wh: mi * iMid_, share: mi },
     { name: 'Video', wh: mv * vMid_, share: mv }
   ].filter(c => c.share > 0).sort((a, b) => b.wh - a.wh);
@@ -1132,7 +1211,7 @@ function calc() {
     bd.style.display = '';
   } else { bd.style.display = 'none'; }
 
-  LAST = { interactions, interLo, interHi, stuInt, staInt, whMid, eMid, eLo, eHi, cMid, cLo, cHi,
+  LAST = { interactions, interLo, interHi, modelledRaw, knownQueries: knownQueryCount, stuInt, staInt, whMid, eMid, eLo, eHi, cMid, cLo, cHi,
            mbMid, mbLoV, mbHiV, wMid, dMid, iMid, headcount, contrib };
 }
 
@@ -1140,7 +1219,43 @@ function applyScenario(name) {
   const s = SCEN[name];
   Object.keys(s).forEach(k => { if ($(k)) $(k).value = s[k]; });
   document.querySelectorAll('.scen').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === name)));
+  CURRENT_SCEN = name;
   calc();
+}
+
+// v4, review 5.4. The primary output is now the three named scenarios rather than a
+// stacked envelope. Each scenario is a coherent state of the world that could actually
+// hold; the envelope multiplies a dozen independent bounds together and lands in a
+// corner of the parameter space with negligible plausibility. Scenarios also claim no
+// distributional knowledge, which was the objection to sampling in the first place.
+let CURRENT_SCEN = 'med';
+let IN_SCEN_TABLE = false;
+const SCEN_LABEL = { low: 'Cautious', med: 'Central', high: 'Intensive' };
+
+function renderScenarioTable() {
+  const body = $('scenBody');
+  if (!body) return;
+  const saved = {};
+  document.querySelectorAll('input[type=number]').forEach(el => { saved[el.id] = el.value; });
+
+  // The presets are partial — Cautious sets student adoption, the others do not —
+  // so applying them in sequence leaks values from one row into the next. Restore
+  // the baseline before each scenario, not only at the end.
+  const rows = ['low', 'med', 'high'].map(name => {
+    Object.keys(saved).forEach(id => { if ($(id)) $(id).value = saved[id]; });
+    const s = SCEN[name];
+    Object.keys(s).forEach(k => { if ($(k)) $(k).value = s[k]; });
+    const r = compute();
+    return { name, r };
+  });
+
+  Object.keys(saved).forEach(id => { if ($(id)) $(id).value = saved[id]; });
+
+  body.innerHTML = rows.filter(x => x.r).map(({ name, r }) => {
+    const on = name === CURRENT_SCEN;
+    return '<tr' + (on ? ' class="on"' : '') + '><th>' + SCEN_LABEL[name] + (on ? ' <span>selected</span>' : '') + '</th>'
+      + '<td>' + energyS(r.e) + '</td><td>' + carbonS(r.c) + '</td><td>' + waterS(r.w) + '</td></tr>';
+  }).join('');
 }
 
 function knownAppsLogLines() {
@@ -1187,6 +1302,9 @@ function assumptionsLog() {
     '  Staff using GenAI at all: ' + g('staAdoptLo') + ' / ' + g('staAdopt') + ' / ' + g('staAdoptHi') + '% [assumption, weak evidence]',
     '  Of those, via institutional licence: ' + g('staInstLo') + ' / ' + g('staInst') + ' / ' + g('staInstHi') + '% [assumption]',
     '  Mean interactions per active staff member per week: ' + g('staWeeklyLo') + ' / ' + g('staWeekly') + ' / ' + g('staWeeklyHi') + ' [assumption]',
+    '  Scenario: ' + (SCEN_LABEL[CURRENT_SCEN] || 'custom'),
+    '  Modelled interactions before deduction: ' + nf(LAST.modelledRaw),
+    '  Measured queries deducted from the modelled total: ' + nf(LAST.knownQueries),
     '  Resulting interactions: ' + nf(LAST.interactions) +
       ' (students ' + nf(LAST.stuInt) + ', staff ' + nf(LAST.staInt) + ')',
     '  Interaction range across the utilisation bounds: ' + nf(LAST.interLo) + ' – ' + nf(LAST.interHi),
@@ -1196,16 +1314,16 @@ function assumptionsLog() {
     'TASK MIX [mix shares are assumptions; energy factors are published]',
     '  Short text ' + g('mixShort') + '% at ' + g('shortMid') + ' Wh (range ' + g('shortLo') + '–' + g('shortHi') + ')',
     '  Long reasoning ' + g('mixLong') + '% at ' + g('longMid') + ' Wh (range ' + g('longLo') + '–' + g('longHi') + ')',
-    '  Agentic ' + g('mixAgent') + '% at ' + g('agentCalls') + ' model calls per task',
+    '  Agentic ' + g('mixAgent') + '% at ' + g('agentCallsLo') + ' / ' + g('agentCalls') + ' / ' + g('agentCallsHi') + ' model calls per task',
     '  Image ' + g('mixImage') + '% at ' + g('imgMid') + ' Wh [Luccioni et al. 2024, measured]',
     '  Video ' + g('mixVideo') + '% at ' + g('vidMid') + ' Wh per 5-second clip [measured, single study]',
     '  Blended: ' + nf(LAST.whMid, 2) + ' Wh per interaction',
     '',
     'CONVERSION FACTORS',
     '  Grid emissions (location-based): ' + g('gridMid') + ' kgCO2e/kWh [DESNZ 2026]',
-    '  Transmission and distribution: ' + g('tdMid') + ' kgCO2e/kWh [DESNZ — verify current year]',
-    '  Market-based factor: ' + g('gridMbMid') + ' kgCO2e/kWh [derived from Google 0.03 gCO2e / 0.24 Wh]',
-    '  Facility overhead (PUE): not applied — source boundaries not established. Downward bias.',
+    '  Transmission and distribution: ' + g('tdMid') + ' kgCO2e/kWh [DESNZ 2026; Scope 3 cat 3; applied to BOTH bases]',
+    '  Market-based factor: ' + g('gridMbMid') + ' kgCO2e/kWh [Google Scope 2 electricity 0.023 gCO2e / 0.24 Wh; embodied 0.010 g excluded, outside boundary]',
+    '  Facility overhead (PUE): not applied, and none needed — overhead is inside both source figures.',
     '  Direct cooling water (WUE): ' + g('wueMid') + ' L/kWh [supplier-measured range 0.12–1.10]',
     '  Indirect water from generation: ' + g('indMid') + ' L/kWh [published range 1.8–7.6]',
     '',
@@ -1284,7 +1402,7 @@ $('btnLog').addEventListener('click', async () => {
 });
 
 // Exposed for the regression checks below; harmless in normal use.
-window.__audit = { assumptionsLog, serialiseState, runHash, stateToUrl, CONSTANTS_VERSION };
+window.__audit = { assumptionsLog, serialiseState, runHash, stateToUrl, CONSTANTS_VERSION, compute };
 
 const restored = restoreFromUrl();
 if (!restored) addKnownRow({ name: '', count: '', type: 'short' });
