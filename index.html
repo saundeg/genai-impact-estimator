@@ -93,10 +93,12 @@ legend{font-family:var(--mono);font-size:.8rem;letter-spacing:.13em;text-transfo
    different heights. Letting the label absorb the slack keeps every input on the
    same baseline. */
 .field label{display:block;font-family:var(--sans);font-weight:600;font-size:1.03rem;line-height:1.25;margin-bottom:5px;flex:1 0 auto}
-/* The evidence tag sat inline after short labels like "Staff" and wrapped below
-   longer ones, so tags in the same row landed on different lines. Giving the tag
-   its own line everywhere makes the label block a consistent two lines. */
-.field > label .tag{display:block;width:fit-content;margin-top:5px}
+/* Evidence tags must line up across a row even when the label text above them wraps
+   to a different number of lines. Making the label a flex column and pushing the tag
+   down with margin-top:auto pins every tag to the bottom of its label block, so they
+   sit on a common baseline whether the label runs to one line or three. */
+.field > label{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.field > label .tag{margin-top:auto;align-self:flex-start}
 .field .trip{flex:0 0 auto}
 .field .hint{flex:0 0 auto}
 .field input{width:100%;font-family:var(--mono);font-size:17px;padding:10px 11px;
@@ -205,11 +207,27 @@ details.adv[open] summary{margin-bottom:16px}
 .equiv .eq-caveat{font-size:.87rem;color:var(--ink-2);background:#f6f9f9;border-left:3px solid var(--keel);padding:12px 14px;margin:16px 0 0;line-height:1.5}
 
 
+.devBanner{display:flex;align-items:center;gap:9px;margin:0 0 14px;padding:11px 15px;
+  border:1px solid var(--tier-a);border-left-width:4px;border-radius:3px;
+  font-family:var(--sans);font-size:.92rem;font-weight:600;color:var(--ink);
+  background:color-mix(in srgb, var(--tier-a) 12%, transparent)}
+.devBanner span{font-size:1.05rem;line-height:1}
+@media print{.devBanner{background:transparent}}
+
 .proportionReadout{background:var(--keel-soft);border:1px solid var(--keel);padding:14px 16px;margin-top:16px}
 .prLine{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:6px 0}
 .prLine + .prLine{border-top:1px solid rgba(18,69,75,.15)}
 .prLabel{font-size:.88rem;color:var(--ink-2)}
-.prValue{font-family:var(--mono);font-size:1.1rem;font-weight:600;color:var(--keel);white-space:nowrap}
+.prValue{font-family:var(--mono);font-size:1.1rem;font-weight:600;color:var(--keel);
+  white-space:nowrap;text-align:right}
+/* The boundary caveat is prose and must wrap; it sits outside .prValue for that
+   reason, since the figure itself is deliberately kept on one line. */
+.prNote{margin:0 0 2px;font-size:.78rem;line-height:1.5;color:var(--ink-2)}
+.prNote:empty{display:none}
+@media (max-width:560px){
+  .prLine{flex-direction:column;align-items:flex-start;gap:2px}
+  .prValue{text-align:left}
+}
 
 /* ---------- sources ---------- */
 .sources{margin-top:34px;border-top:2px solid var(--ink);padding-top:20px}
@@ -274,7 +292,8 @@ details.adv[open] summary{margin-bottom:16px}
 <div class="wrap">
 
 <header class="mast">
-  <p class="eyebrow">Scenario model · version 2 · not a measurement</p>
+  <p class="devBanner"><span aria-hidden="true">⚠</span> In development — not yet approved for institutional reporting</p>
+  <p class="eyebrow">Scenario model · version 4 · not a measurement</p>
   <h1>Generative AI Environmental Impact Estimator</h1>
   <p class="standfirst">Estimates the annual <em>inference</em> electricity, carbon and water associated with generative AI provided to staff and students under an institutional licence. Every input below is colour-coded by how well it is evidenced, because the reliability of the answer is set almost entirely by the weakest input — not the strongest.</p>
 
@@ -563,10 +582,12 @@ details.adv[open] summary{margin-bottom:16px}
       <span class="prLabel">AI electricity as a share of institutional electricity</span>
       <span class="prValue" id="prShareE">Enter both figures above</span>
     </div>
+    <p class="prNote" id="prNoteE"></p>
     <div class="prLine">
       <span class="prLabel">AI water as a share of institutional water</span>
       <span class="prValue" id="prShareW">Enter both figures above</span>
     </div>
+    <p class="prNote" id="prNoteW"></p>
   </div>
 
   <div class="notice warn">
@@ -1165,15 +1186,19 @@ function calc() {
   const prE = $('prShareE'), prW = $('prShareW');
   if (ik) {
     const pct = 100 * eMid / ik;
-    prE.textContent = sig1(100 * eMid / ik) + '% \u2014 ' + energyT(eMid) + ' of ' + energyT(ik) + '. Not like for like: a Scope 3 purchased service measured against Scope 1 and 2 own-estate consumption.';
+    prE.textContent = sig1(100 * eMid / ik) + '% \u2014 ' + energyT(eMid) + ' of ' + energyT(ik);
+    $('prNoteE').textContent = 'Not like for like: a Scope 3 purchased service measured against Scope 1 and 2 own-estate consumption.';
   } else {
     prE.textContent = 'Enter institutional electricity above';
+    $('prNoteE').textContent = '';
   }
   if (iw) {
     const pctW = 100 * (wMid / 1000) / iw;
-    prW.textContent = sig1(100 * (wMid / 1000) / iw) + '% \u2014 ' + waterT(wMid) + ' of ' + nf(iw, 0) + ' m\u00B3. Same boundary mismatch as above.';
+    prW.textContent = sig1(100 * (wMid / 1000) / iw) + '% \u2014 ' + waterT(wMid) + ' of ' + nf(iw, 0) + ' m\u00B3';
+    $('prNoteW').textContent = 'Same boundary mismatch as above.';
   } else {
     prW.textContent = 'Enter institutional water above';
+    $('prNoteW').textContent = '';
   }
   $('oPer').textContent = headcount > 0 ? sig2(1000 * eMid / headcount) + ' Wh' : '—';
   $('oPerCarbon').textContent = headcount > 0 ? sig2(1000 * cMid / headcount) + ' g' : '—';
@@ -1289,6 +1314,7 @@ function assumptionsLog() {
     ...knownAppsLogLines(),
     '',
     'GENERATIVE AI ENVIRONMENTAL IMPACT — ASSUMPTIONS LOG',
+    'IN DEVELOPMENT — NOT YET APPROVED FOR INSTITUTIONAL REPORTING',
     'Constants version ' + CONSTANTS_VERSION + '   Run ' + runHash(serialiseState()),
     'Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }),
     '',
