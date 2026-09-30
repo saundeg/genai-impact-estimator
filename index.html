@@ -608,7 +608,7 @@ details.adv[open] summary{margin-bottom:16px}
         <thead><tr><th>Scenario</th><th>Electricity</th><th>Carbon (location)</th><th>Water</th></tr></thead>
         <tbody id="scenBody"></tbody>
       </table>
-      <p class="scenNote">Each row is a self-consistent state of the world. The arithmetic envelope printed under each figure below sets every assumption to its bound at the same time, which is a corner of the parameter space with negligible plausibility — it is a sanity check on the model, not a confidence interval and not a probability statement. <strong>Quote a scenario, not the envelope.</strong></p>
+      <p class="scenNote" id="scenNote">Each row is a self-consistent state of the world. The arithmetic envelope printed under each figure below sets every assumption to its bound at the same time, which is a corner of the parameter space with negligible plausibility — it is a sanity check on the model, not a confidence interval and not a probability statement. <strong>Quote a scenario, not the envelope.</strong></p>
 
 
       <div class="metric">
@@ -1258,6 +1258,7 @@ function applyScenario(name) {
 // corner of the parameter space with negligible plausibility. Scenarios also claim no
 // distributional knowledge, which was the objection to sampling in the first place.
 let CURRENT_SCEN = 'med';
+let SCEN_NOTE_DEFAULT = '';
 let IN_SCEN_TABLE = false;
 const SCEN_LABEL = { low: 'Cautious', med: 'Central', high: 'Intensive' };
 
@@ -1286,7 +1287,26 @@ function renderScenarioTable() {
 
   Object.keys(saved).forEach(id => { if ($(id)) $(id).value = saved[id]; });
 
-  body.innerHTML = rows.filter(x => x.r).map(({ name, r }) => {
+  // With no headcount entered, the scenario model contributes nothing and every row
+  // is the measured total repeated three times. The arithmetic is right, but three
+  // identical rows read as three alternatives, and the scenario picker appears to be
+  // doing work it is not. Say what is actually happening instead.
+  const live = rows.filter(x => x.r);
+  const allSame = live.length > 1 && live.every(x => Math.abs(x.r.e - live[0].r.e) < 1e-9);
+  const note = $('scenNote');
+  if (allSame) {
+    if (tbl) tbl.style.display = 'none';
+    body.innerHTML = '';
+    if (note) note.innerHTML = '<strong>Scenarios do not apply to this run.</strong> '
+      + 'Every interaction here comes from measured applications, so the figures do not depend on the '
+      + 'assumptions in section 02 and all three scenarios return the same answer. Enter headcounts in '
+      + 'section 01 if you also want to estimate use of tools you have no measured data for.';
+    return;
+  }
+  if (tbl) tbl.style.display = '';
+  if (note) note.innerHTML = SCEN_NOTE_DEFAULT;
+
+  body.innerHTML = live.map(({ name, r }) => {
     const on = name === CURRENT_SCEN;
     return '<tr' + (on ? ' class="on"' : '') + '><th>' + SCEN_LABEL[name] + (on ? ' <span>selected</span>' : '') + '</th>'
       + '<td>' + energyS(r.e) + '</td><td>' + carbonS(r.c) + '</td><td>' + waterS(r.w) + '</td></tr>';
@@ -1439,6 +1459,9 @@ $('btnLog').addEventListener('click', async () => {
 
 // Exposed for the regression checks below; harmless in normal use.
 window.__audit = { assumptionsLog, serialiseState, runHash, stateToUrl, CONSTANTS_VERSION, compute };
+
+// Capture the standing note before anything overwrites it, so it can be restored.
+if ($('scenNote')) SCEN_NOTE_DEFAULT = $('scenNote').innerHTML;
 
 const restored = restoreFromUrl();
 if (!restored) addKnownRow({ name: '', count: '', type: 'short' });
